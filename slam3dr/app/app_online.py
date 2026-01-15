@@ -616,8 +616,8 @@ def server_gradio(args):
     else:
         server_name = '0.0.0.0' if args.local_network else '127.0.0.1'
     
-    i2p_model = Image2PointsModel.from_pretrained('siyan824/slam3r_i2p')
-    l2w_model = Local2WorldModel.from_pretrained('siyan824/slam3r_l2w')
+    i2p_model = Image2PointsModel()
+    l2w_model = Local2WorldModel()
     i2p_model.to(args.device)
     l2w_model.to(args.device)
     i2p_model.eval()

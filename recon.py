@@ -111,12 +111,12 @@ if __name__ == "__main__":
     if args.i2p_weights is not None:
         i2p_model = load_model(args.i2p_model, args.i2p_weights, args.device)
     else:
-        i2p_model = Image2PointsModel.from_pretrained('siyan824/slam3r_i2p')
+        i2p_model = Image2PointsModel()
         i2p_model.to(args.device)
     if args.l2w_weights is not None:
         l2w_model = load_model(args.l2w_model, args.l2w_weights, args.device)
     else:
-        l2w_model = Local2WorldModel.from_pretrained('siyan824/slam3r_l2w')
+        l2w_model = Local2WorldModel()
         l2w_model.to(args.device)
     i2p_model.eval()
     l2w_model.eval()

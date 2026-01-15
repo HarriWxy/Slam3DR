@@ -189,12 +189,8 @@ def main(args):
     model_without_ddp = model
     print("Model = %s" % str(model_without_ddp))
 
-    if args.pretrained =="i2p"and not args.resume:
-        model.from_pretrained('siyan824/slam3r_i2p')
-    elif args.pretrained =="l2w" and not args.resume:
-        model.from_pretrained('siyan824/slam3r_l2w')
     
-    elif args.pretrained and not args.resume:
+    if args.pretrained and not args.resume:
         print('Loading pretrained: ', args.pretrained)
         ckpt = torch.load(args.pretrained, map_location=device)
         print(model.load_state_dict(ckpt['model'], 
