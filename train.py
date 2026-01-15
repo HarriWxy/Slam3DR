@@ -66,9 +66,12 @@ def get_args_parser():
     parser.add_argument('--test_criterion', default="Jointnorm_Regr3D(L21, norm_mode='avg_dis')", type=str, help="test criterion")
 
     # dataset
-    parser.add_argument('--train_dataset', default="4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233)", 
+    parser.add_argument('--train_dataset', default="4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + \
+                                                    1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)", 
                         type=str, help="training set") # required=True
-    parser.add_argument('--test_dataset', default="1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666)", type=str, help="testing set")
+    parser.add_argument('--test_dataset', default="1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666)+\
+                                                    1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='test', resolution=224, seed=666)", 
+                        type=str, help="testing set")
 
     # training
     parser.add_argument('--ref_id', type=int, default=-1, help='the id of reference view')
@@ -77,11 +80,11 @@ def get_args_parser():
     parser.add_argument('--loss_func', type=str, default='i2p', help='loss inference function')
     
     parser.add_argument('--seed', default=0, type=int, help="Random seed")
-    parser.add_argument('--batch_size', default=8, type=int,
+    parser.add_argument('--batch_size', default=12, type=int,
                         help="Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus")
     parser.add_argument('--accum_iter', default=1, type=int,
                         help="Accumulate gradient iterations (for increasing the effective batch size under memory constraints)")
-    parser.add_argument('--epochs', default=800, type=int, help="Maximum number of epochs for the scheduler")
+    parser.add_argument('--epochs', default=8, type=int, help="Maximum number of epochs for the scheduler")
 
     parser.add_argument('--weight_decay', type=float, default=0.05, help="weight decay (default: 0.05)")
     parser.add_argument('--lr', type=float, default=None, metavar='LR', help='learning rate (absolute lr)')
@@ -95,7 +98,7 @@ def get_args_parser():
                         choices=[0, 1], help="Use Automatic Mixed Precision for pretraining")
 
     # others
-    parser.add_argument('--num_workers', default=0, type=int)
+    parser.add_argument('--num_workers', default=8, type=int)
     parser.add_argument('--world_size', default=1, type=int, help='number of distributed processes')
     parser.add_argument('--local_rank', default=-1, type=int)
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
@@ -121,7 +124,7 @@ def get_args_parser():
     parser.add_argument('--assist_pretrained', type=str, default=None, help='path of checkpoint for the assist model')
 
     # optional RGB+Depth fusion input
-    parser.add_argument('--depth_fuse', default=True, action='store_true', help='enable RGB+depth fusion input')
+    parser.add_argument('--depth_fuse', default=False, action='store_true', help='enable RGB+depth fusion input')
     parser.add_argument('--depth_fuse_channels', type=int, default=1, choices=[1, 3],
                         help='number of depth channels to concatenate (1 or 3)')
     parser.add_argument('--depth_fuse_key', type=str, default='img_depth',
@@ -165,9 +168,9 @@ def main(args):
     # training dataset and loader
     print('Building train dataset {:s}'.format(args.train_dataset))
     #  dataset and loader
-    data_loader_train = build_dataset(args.train_dataset, args.batch_size, args.num_workers, test=False, args=args)
+    data_loader_train = build_dataset(args.train_dataset, args.batch_size, args.num_workers, test=False)
     print('Building test dataset {:s}'.format(args.test_dataset))
-    data_loader_test = {dataset.split('(')[0]: build_dataset(dataset, args.batch_size, args.num_workers, test=True, args=args)
+    data_loader_test = {dataset.split('(')[0]: build_dataset(dataset, args.batch_size, args.num_workers, test=True)
                         for dataset in args.test_dataset.split('+')}
 
     # model

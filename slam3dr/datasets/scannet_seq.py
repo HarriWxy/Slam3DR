@@ -25,7 +25,7 @@ class ScanNet_Seq(BaseStereoViewDataset):
     """
     def __init__(
         self,
-        num_seq=100, num_frames=5, 
+        num_seq=100, num_views=5, 
         min_thresh=10, max_thresh=100, 
         test_id=None, full_video=False, kf_every=1,
         ROOT="../scannet/",
@@ -34,7 +34,7 @@ class ScanNet_Seq(BaseStereoViewDataset):
         self.ROOT = ROOT
         super().__init__(*args, **kwargs)
         self.num_seq = num_seq
-        self.num_frames = num_frames
+        self.num_views = num_views
         self.min_thresh = min_thresh
         self.max_thresh = max_thresh
         self.test_id = test_id
@@ -43,8 +43,8 @@ class ScanNet_Seq(BaseStereoViewDataset):
         self._load_data(base_dir=self.ROOT)
 
     def sample_frames(self, img_idxs, rng):
-        num_frames = self.num_frames
-        thresh = int(self.min_thresh + self.train_ratio * (self.max_thresh - self.min_thresh))
+        num_frames = self.num_views
+        thresh = int(self.min_thresh + 0.5 * (self.max_thresh - self.min_thresh))
                 
         img_indices = list(range(len(img_idxs)))
         
@@ -88,7 +88,7 @@ class ScanNet_Seq(BaseStereoViewDataset):
     def _load_data(self, base_dir=None):
         self.folder = {'train': 'scans', 'val': 'scans', 'test': 'scans_test'}[self.split]
         
-        if self.scene_id is None:
+        if self.test_id is None:
             meta_split = osp.join(base_dir, 'data_splits', f'scannetv2_{self.split}.txt')  # for train and test records
             
             if not osp.exists(meta_split):
@@ -111,8 +111,7 @@ class ScanNet_Seq(BaseStereoViewDataset):
     def __len__(self):
         return len(self.scene_list) * self.num_seq
 
-    def _get_views(self, idx, resolution, rng):
-        attempts = 0
+    def _get_views(self, idx, resolution, rng, attempts=0):
         scene_id = self.scene_list[idx // self.num_seq]
 
         # Load metadata

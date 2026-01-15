@@ -49,7 +49,7 @@ def loss_of_one_batch_multiview(batch, model, criterion, device,
         ref_id = (len(views)-1)//2
 
     with torch.amp.autocast("cuda",enabled=bool(use_amp)):
-        preds = model(views, ref_id=ref_id)
+        preds = model(views, ref_ids=ref_id)
         assert len(preds) == len(views)
         
         with torch.amp.autocast("cuda",enabled=False):

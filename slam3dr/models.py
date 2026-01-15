@@ -541,14 +541,14 @@ class Local2WorldModel(Multiview3D):
         pes = []
         for id, view in enumerate(views):
             if id in ref_ids:
-                pos = view['pts3d_world']
+                pos = view['pts3d']
             else:
                 pos = view['pts3d_cam']
                 
             if pos.shape[-1] == 3:
-                pos = pos.permute(0,3, 1, 2)
+                pos:torch.Tensor = pos.permute(0,3, 1, 2)
                 
-            pts_embedding = self.ponit_embedder(pos).permute(0,2,3,1).reshape(pos.shape[0], -1, self.dec_embed_dim) # (B, S, D)
+            pts_embedding = self.ponit_embedder(pos.to("cuda")).permute(0,2,3,1).reshape(pos.shape[0], -1, self.dec_embed_dim) # (B, S, D)
             if 'patch_mask' in view:
                 patch_mask = view['patch_mask'].reshape(pos.shape[0], -1, 1) # (B, S, 1)
                 pts_embedding = pts_embedding*(~patch_mask) + self.void_pe_token*patch_mask
