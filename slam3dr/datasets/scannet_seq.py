@@ -25,21 +25,22 @@ class ScanNet_Seq(BaseStereoViewDataset):
     """
     def __init__(
         self,
+        num_seq=100, num_frames=5, 
+        min_thresh=10, max_thresh=100, 
+        test_id=None, full_video=False, kf_every=1,
         ROOT="../scannet/",
-        scene_id=None,
-        num_views=2,
-        num_frames=5,
-        sample_freq=1,
-        start_freq=1, kf_every=1,
         *args, **kwargs
     ):
         self.ROOT = ROOT
-        self.scene_id = scene_id
-        self.num_fetch_views = num_views
-        self.sample_freq = sample_freq
-        self.start_freq = start_freq
-        self.kf_every = kf_every
         super().__init__(*args, **kwargs)
+        self.num_seq = num_seq
+        self.num_frames = num_frames
+        self.min_thresh = min_thresh
+        self.max_thresh = max_thresh
+        self.test_id = test_id
+        self.full_video = full_video
+        self.kf_every = kf_every
+        self._load_data(base_dir=self.ROOT)
 
     def sample_frames(self, img_idxs, rng):
         num_frames = self.num_frames
@@ -88,7 +89,7 @@ class ScanNet_Seq(BaseStereoViewDataset):
         self.folder = {'train': 'scans', 'val': 'scans', 'test': 'scans_test'}[self.split]
         
         if self.scene_id is None:
-            meta_split = osp.join(base_dir, 'splits', f'scannetv2_{self.split}.txt')  # for train and test records
+            meta_split = osp.join(base_dir, 'data_splits', f'scannetv2_{self.split}.txt')  # for train and test records
             
             if not osp.exists(meta_split):
                 raise FileNotFoundError(f"Split file {meta_split} not found")
@@ -99,83 +100,24 @@ class ScanNet_Seq(BaseStereoViewDataset):
             print(f"Found {len(self.scene_list)} scenes in split {self.split}")
             
         else:
-            if isinstance(self.scene_id, list):
-                self.scene_list = self.scene_id
+            if isinstance(self.test_id, list):
+                self.scene_list = self.test_id
             else:
-                self.scene_list = [self.scene_id]
+                self.scene_list = [self.test_id]
                 
-            print(f"Scene_id: {self.scene_id}")
+            print(f"Scene_id: {self.test_id}")
 
-        # region
-        # assert self.scene_id is not None, "ScanNet_Seq requires scene_id"
-
-        # scene_dir = osp.join(self.ROOT, self.scene_id)
-        # color_dir = osp.join(scene_dir, "color")
-        # depth_dir = osp.join(scene_dir, "depth")
-        # pose_dir = osp.join(scene_dir, "pose")
-        # intrinsic_path = osp.join(scene_dir, "intrinsic", "intrinsic_color.txt")
-
-        # self.images = sorted(glob(osp.join(color_dir, "*.jpg")))
-        # if len(self.images) == 0:
-        #     self.images = sorted(glob(osp.join(color_dir, "*.png")))
-        # assert len(self.images) > 0, f"no images found in {color_dir}"
-
-        # # intrinsics
-        # Kraw = np.loadtxt(intrinsic_path).astype(np.float32)
-        # if Kraw.shape == (4, 4):
-        #     K = Kraw[:3, :3]
-        # else:
-        #     K = Kraw
-        # assert K.shape == (3, 3)
-
-        # self.intrinsics = []
-        # self.trajectories = []
-        # self.depths = []
-        # self.sceneids = []
-        # for img_path in self.images:
-        #     stem = osp.splitext(osp.basename(img_path))[0]
-        #     did = int(stem)
-
-        #     depth_path = osp.join(depth_dir, f"{did}.png")
-        #     pose_path = osp.join(pose_dir, f"{did}.txt")
-        #     if not (osp.exists(depth_path) and osp.exists(pose_path)):
-        #         # skip missing frames
-        #         continue
-
-        #     c2w = np.loadtxt(pose_path).astype(np.float32)
-        #     if not np.isfinite(c2w).all():
-        #         continue
-
-        #     self.intrinsics.append(K.copy())
-        #     self.trajectories.append(c2w)
-        #     self.depths.append(depth_path)
-        #     self.sceneids.append(0)
-
-        # self.intrinsics = np.stack(self.intrinsics, axis=0)
-        # self.trajectories = np.stack(self.trajectories, axis=0)
-        # self.images = [osp.basename(p) for p in self.images[:len(self.depths)]]
-
-        # # build sliding-window pairs
-        # self.pairs = []
-        # image_num = len(self.depths)
-        # for i in range(0, image_num, self.start_freq):
-        #     last_id = i + (self.num_fetch_views - 1) * self.sample_freq
-        #     if last_id >= image_num:
-        #         break
-        #     self.pairs.append([i + j * self.sample_freq for j in range(self.num_fetch_views)])
-
-        # self.scene_names = [self.scene_id]
-        # endregion
-
+    
     def __len__(self):
-        return len(self.pairs)
+        return len(self.scene_list) * self.num_seq
 
     def _get_views(self, idx, resolution, rng):
+        attempts = 0
         scene_id = self.scene_list[idx // self.num_seq]
 
         # Load metadata
         intri_path = osp.join(self.ROOT, self.folder, scene_id, 'intrinsic/intrinsic_depth.txt')
-        intrinsics = np.loadtxt(intri_path).astype(np.float32)[:3, :3]
+        intri = np.loadtxt(intri_path).astype(np.float32)[:3, :3]
 
         # Load image data
         data_path = osp.join(self.ROOT, self.folder, scene_id, 'sensor_data')
@@ -186,15 +128,11 @@ class ScanNet_Seq(BaseStereoViewDataset):
         imgs_idxs = deque(imgs_idxs)
         views = []
 
-
         while len(imgs_idxs) > 0:
             view_idx = imgs_idxs.popleft()
             img_path = osp.join(data_path, f'frame-{view_idx}.color.jpg')
             depth_path = osp.join(data_path, f'frame-{view_idx}.depth.png')
             pose_path = osp.join(data_path, f'frame-{view_idx}.pose.txt')
-            # img_name = self.images[view_idx]
-            # img_path = osp.join(color_dir, img_name)
-            # depth_path = self.depths[view_idx]
 
             rgb_image = imread_cv2(img_path)
             depthmap = imread_cv2(depth_path, cv2.IMREAD_UNCHANGED)
@@ -202,16 +140,27 @@ class ScanNet_Seq(BaseStereoViewDataset):
             camera_pose = np.loadtxt(pose_path).astype(np.float32)
 
             rgb_image, depthmap, intrinsics = self._crop_resize_if_necessary(
-                rgb_image, depthmap, intrinsics, resolution, rng=rng, info=view_idx
+                rgb_image, depthmap, intri, resolution, rng=rng, info=view_idx
             )
+            num_valid = (depthmap > 0.0).sum()
+            if num_valid == 0 or (not np.isfinite(camera_pose).all()):
+                if self.full_video:
+                    print(f"Warning: No valid depthmap found for {img_path}")
+                    continue
+                else:
+                    if attempts >= 5:
+                        new_idx = rng.integers(0, self.__len__()-1)
+                        return self._get_views(new_idx, resolution, rng)
+                    return self._get_views(idx, resolution, rng, attempts+1)
+                
 
             views.append(dict(
                 img=rgb_image,
                 depthmap=depthmap,
-                camera_pose=camera_pose.astype(np.float32),
-                camera_intrinsics=intrinsics.astype(np.float32),
+                camera_pose=camera_pose,
+                camera_intrinsics=intrinsics,
                 dataset="ScanNet",
-                label=f"{self.scene_id}_{view_idx}",
+                label=f"{scene_id}_{view_idx}",
                 instance=f"{idx}_{view_idx}",
             ))
         return views

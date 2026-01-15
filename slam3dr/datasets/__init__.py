@@ -7,7 +7,7 @@ from .utils.transforms import *
 from .base.batched_sampler import BatchedRandomSampler  # noqa: F401
 from .replica_seq import Replica
 from .scannetpp_seq import ScanNetpp_Seq
-from .project_aria_seq import Aria_Seq
+from .scannet_seq import ScanNet_Seq
 from .co3d_seq import Co3d_Seq
 from .base.base_stereo_view_dataset import EasyDataset
 
