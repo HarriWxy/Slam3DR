@@ -1,6 +1,6 @@
 # Slam3DR
 
-为了满足赛题对于“输入单目RGB视频，输出3D重建可视化结果”以及“输入单目RGBD视频，输出3D可视化结果”的需求，我们基于 Slam3R 框架，结合深度特征可选融合机制设计实现了 Slam3DR。
+为了满足赛题对于“输入单目RGB视频，输出3D重建可视化结果”以及“输入单目RGBD视频，输出3D可视化结果”的需求，我们基于 [Slam3R](https://github.com/PKU-VCL-3DV/SLAM3R) 框架，结合深度特征可选融合机制设计实现了 Slam3DR。
 
 ---
 
@@ -162,9 +162,9 @@ python train.py \
 
 ```bash
 # train the Image-to-Points model and the retrieval module
-bash ./scripts/train_i2p.sh
+bash ./utils/train_i2p.sh
 # train the Local-to-Wrold model
-bash ./scripts/train_l2w.sh
+bash ./utils/train_l2w.sh
 ```
 
 ### 5.4 可选：RGB+Depth 输入拼接

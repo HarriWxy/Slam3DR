@@ -20,9 +20,9 @@ parser.add_argument('--export_color_images', dest='export_color_images', action=
 parser.add_argument('--export_poses', default=True, dest='export_poses', action='store_true')
 parser.add_argument('--export_intrinsics', default=True, dest='export_intrinsics', action='store_true')
 parser.add_argument('--num_workers', type=int, default=16)
-parser.add_argument('--rgb_resize', nargs='+', type=int, default=None, help='width height')
-parser.add_argument('--depth_resize', nargs='+', type=int, default=None, help='width height')
-parser.set_defaults(export_depth_images=False, export_color_images=False, export_poses=False, export_intrinsics=False)
+parser.add_argument('--rgb_resize', nargs='+', type=int, default=[224, 224], help='width height')
+parser.add_argument('--depth_resize', nargs='+', type=int, default=[224, 224], help='width height')
+parser.set_defaults(export_depth_images=True, export_color_images=True, export_poses=True, export_intrinsics=True)
 
 opt = parser.parse_args()
 print(opt)
@@ -31,6 +31,10 @@ def process_scan(opt, scan_job, count=None, progress=None):
   filename = scan_job[0]
   output_path = scan_job[1]
   scan_name = scan_job[2]
+  # if filename exists
+  if not os.path.exists(filename):
+    # print(f"File {filename} does not exist, skipping...")
+    return
 
   if not os.path.exists(output_path):
       os.makedirs(output_path)
@@ -56,16 +60,17 @@ def main():
 
   if opt.single_debug_scan_id is not None:
     scans = [opt.single_debug_scan_id]
-  else:
-    f = open(opt.scan_list_file, "r")
-    scans = f.readlines()
+  elif opt.scan_list_file is not None:
+    with open(opt.scan_list_file, "r") as f:
+      scans = f.readlines()
     scans = [scan.strip() for scan in scans]
+  else:
+    scans = sorted([d for d in os.listdir(opt.scans_folder) if os.path.isdir(os.path.join(opt.scans_folder, d))])
   
-  input_files = [os.path.join(opt.scans_folder, f"{scan}/{scan}.sens") for 
-                                        scan in scans]
+  
+  input_files = [os.path.join(opt.scans_folder, f"{scan}/{scan}.sens") for scan in scans]
 
-  output_dirs = [os.path.join(opt.output_path, scan) for 
-                                        scan in scans]
+  output_dirs = [os.path.join(opt.output_path, scan) for scan in scans]
 
   scan_jobs = list(zip(input_files, output_dirs, scans))
 

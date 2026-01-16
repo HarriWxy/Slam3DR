@@ -67,7 +67,7 @@ def get_args_parser():
 
     # dataset
     parser.add_argument('--train_dataset', default="4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + \
-                                                    1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)", 
+                                                    2000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)", 
                         type=str, help="training set") # required=True
     parser.add_argument('--test_dataset', default="1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666)+\
                                                     1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='test', resolution=224, seed=666)", 
