@@ -224,12 +224,12 @@ class Jointnorm_Regr3D(Criterion, MultiLoss):
         all_l = []
         details = {}
         for i in range(len(gts)):
-            l1 = self.criterion(pred_pts[i][valids[i]], gt_pts[i][valids[i]])
+            l1:torch.Tensor = self.criterion(pred_pts[i][valids[i]], gt_pts[i][valids[i]])
             # self_name = type(self).__name__
             self_name = "Regr3D"
             if head != '':
                 self_name = self_name + '_' + head
-            details[self_name+f'_pts3d_{i+1}'] = float(l1.mean())
+            details[self_name+f'_pts3d_{i+1}'] = float(l1.detach().mean())
             # print(l1.shape)  #(valid_num,)
             all_l.append((l1,valids[i]))
 
@@ -272,10 +272,10 @@ class Jointnorm_ConfLoss (MultiLoss):
             loss = losses_and_masks[i][0]
             mask = losses_and_masks[i][1]
             conf, log_conf = self.get_conf_log(preds[i]['conf'][mask])
-            conf_loss = loss * conf - self.alpha * log_conf
+            conf_loss:torch.Tensor = loss * conf - self.alpha * log_conf
             conf_loss = conf_loss.mean() if conf_loss.numel() > 0 else 0
             res_loss += conf_loss
             info_name = f"conf_loss_{i+1}" if head == '' else f"conf_loss_{head}_{i+1}"
-            res_info[info_name] = float(conf_loss)
+            res_info[info_name] = float(conf_loss.detach())
 
         return res_loss, res_info

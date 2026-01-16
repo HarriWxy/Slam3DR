@@ -67,7 +67,7 @@ Slam3DR 的整体思路是将“多视图稠密 3D 点图预测”与“跨帧�
 conda create -n slam3dr python=3.12 cmake=3.14.0
 conda activate slam3dr 
 # install torch according to your cuda version
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 pip install -r requirements.txt
 # optional: install additional packages to support visualization and data preprocessing
 pip install -r requirements_optional.txt
@@ -76,7 +76,7 @@ pip install -r requirements_optional.txt
 3. 可选：使用 XFormers 和为 RoPE 编写的自定义 CUDA 内核来加速 SLAM3DR
 ```bash
 # install XFormers according to your pytorch version, see https://github.com/facebookresearch/xformers
-pip install xformers
+pip install xformers xformers --index-url https://download.pytorch.org/whl/cu130
 # compile cuda kernels for RoPE
 # if the compilation fails, try the propoesd solution: https://github.com/CUT3R/CUT3R/issues/7.
 cd slam3dr/pos_embed/curope/

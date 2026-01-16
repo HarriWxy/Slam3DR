@@ -292,7 +292,9 @@ def get_grad_norm_(parameters, norm_type: float = 2.0) -> torch.Tensor:
 def save_model(args, epoch, model_without_ddp, optimizer, loss_scaler, fname=None, best_so_far=None):
     output_dir = Path(args.output_dir)
     if fname is None: fname = str(epoch)
-    checkpoint_path = output_dir / ('checkpoint-%s.pth' % fname)
+    checkpoint_path = output_dir / ('checkpoint-%s.pth' % fname) # / args.loss_func
+    if not os.path.exists(os.path.dirname(checkpoint_path)):
+        os.makedirs(os.path.dirname(checkpoint_path))
     to_save = {
         'model': model_without_ddp.state_dict(),
         'optimizer': optimizer.state_dict(),

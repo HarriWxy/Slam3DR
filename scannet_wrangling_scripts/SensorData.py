@@ -95,7 +95,7 @@ class SensorData:
       self.num_IMU_frames = struct.unpack('Q', f.read(8))[0]
 
 
-  def export_depth_images(self, output_path, image_size=(224, 224), frame_skip=1):
+  def export_depth_images(self, output_path, image_size=None, frame_skip=1):
     if not os.path.exists(output_path):
       os.makedirs(output_path)
     print('exporting', len(self.frames), frame_skip, ' depth frames to', output_path)
@@ -115,15 +115,21 @@ class SensorData:
         #       print(f"File {filepath_old} not found for removal.")
       else:
         filepath = os.path.join(output_path, f"frame-{f:06d}.depth.png")
+        filepath_old = os.path.join(output_path, f"frame-{f:06d}.depth.224.png")
+        if os.path.exists(filepath_old):
+          try:
+              os.remove(filepath_old)
+          except FileNotFoundError:
+              print(f"File {filepath_old} not found for removal.")
       
       if os.path.exists(filepath):
-          return
+          continue
       with open(filepath, 'wb') as f: # write 16-bit
         writer = png.Writer(width=depth.shape[1], height=depth.shape[0], bitdepth=16)
         depth = depth.reshape(-1, depth.shape[1]).tolist()
         writer.write(f, depth)
 
-  def export_color_images(self, output_path, image_size=(224, 224), frame_skip=1):
+  def export_color_images(self, output_path, image_size=None, frame_skip=1):
     if not os.path.exists(output_path):
       os.makedirs(output_path)
     print('exporting', len(self.frames), frame_skip, 'color frames to', output_path)
@@ -133,7 +139,7 @@ class SensorData:
       if image_size is not None:
         filepath = os.path.join(output_path, f"frame-{f:06d}.color.{int(image_size[0])}.png")
         if os.path.exists(filepath):
-          return
+          continue
         resized = Image.fromarray(color).resize((image_size[0], image_size[1]), resample=Image.BILINEAR)
         resized.save(filepath)
         # old_fp = os.path.join(output_path, f"frame-{f:06d}.color.jpg")
@@ -144,8 +150,14 @@ class SensorData:
         #       print(f"File {old_fp} not found for removal.")
       else:
         filepath = os.path.join(output_path, f"frame-{f:06d}.color")
-        if os.path.exists(filepath) or  os.path.exists(filepath+".jpg"):
-          return 
+        old_fp = os.path.join(output_path, f"frame-{f:06d}.color.224.png")
+        if os.path.exists(old_fp):
+          try:
+              os.remove(old_fp)
+          except FileNotFoundError:
+              print(f"File {old_fp} not found for removal.")
+        if os.path.exists(filepath+".jpg"):
+          continue
         self.frames[f].dump_color_to_file(self.color_compression_type, filepath)
 
 

@@ -55,11 +55,11 @@ def _apply_depth_fuse(dataset, args):
 def get_args_parser():
     parser = argparse.ArgumentParser('SLAM3DR training', add_help=False)
     # model and criterion
-    parser.add_argument('--model',default="Image2PointsModel(pos_embed='RoPE100', img_size=(224, 224), head_type='linear', output_mode='pts3d', depth_mode=('exp', -inf, inf), conf_mode=('exp', 1, inf), \
-                        enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
-                        mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 11)",  #  required=True
+    parser.add_argument('--model',default="Local2WorldModel(pos_embed='RoPE100', img_size=(224, 224), head_type='linear', output_mode='pts3d', depth_mode=('exp', -inf, inf), conf_mode=('exp', 1, inf), \
+                enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
+                mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 12, need_encoder=True)",  #  required=True
                         type=str, help="string containing the model to build")
-    parser.add_argument('--pretrained', default="i2p", help='path of a starting checkpoint')
+    parser.add_argument('--pretrained', default="l2w", help='path of a starting checkpoint')
     parser.add_argument('--pretrained_type', default='dust3r', help='type of pretrained checkpoint')
     parser.add_argument('--train_criterion', default="Jointnorm_ConfLoss(Jointnorm_Regr3D(L21, norm_mode='avg_dis'), alpha=0.2)", # required=True
                         type=str, help="train criterion")
@@ -77,7 +77,7 @@ def get_args_parser():
     parser.add_argument('--ref_id', type=int, default=-1, help='the id of reference view')
     parser.add_argument('--ref_ids', default=[0, 1, 2, 3, 4, 5], nargs="+", type=int, help='the ids of reference views')
     
-    parser.add_argument('--loss_func', type=str, default='i2p', help='loss inference function')
+    parser.add_argument('--loss_func', type=str, default='l2w', help='loss inference function')
     
     parser.add_argument('--seed', default=0, type=int, help="Random seed")
     parser.add_argument('--batch_size', default=16, type=int,

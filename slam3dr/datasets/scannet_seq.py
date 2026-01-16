@@ -151,8 +151,7 @@ class ScanNet_Seq(BaseStereoViewDataset):
                         new_idx = rng.integers(0, self.__len__()-1)
                         return self._get_views(new_idx, resolution, rng)
                     return self._get_views(idx, resolution, rng, attempts+1)
-                
-
+            
             views.append(dict(
                 img=rgb_image,
                 depthmap=depthmap,
