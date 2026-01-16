@@ -86,7 +86,7 @@ class ScanNet_Seq(BaseStereoViewDataset):
         return img_idxs
 
     def _load_data(self, base_dir=None):
-        self.folder = {'train': 'scans', 'val': 'scans', 'test': 'scans_test'}[self.split]
+        self.folder = {'train': 'scans', 'val': 'scans', 'test': 'scans'}[self.split]  # scans_test
         
         if self.test_id is None:
             meta_split = osp.join(base_dir, 'data_splits', f'scannetv2_{self.split}.txt')  # for train and test records

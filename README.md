@@ -135,8 +135,10 @@ python train.py \
 	--output_dir ./output/i2p_run \
 	--pretrained i2p \
 	--loss_func i2p \
-	--epochs 8 \
-	--batch_size 12
+	--epochs 20 \
+	--batch_size 16 \
+	--train_dataset "4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + 2000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)" \
+	--test_dataset "1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666) + 500 @ ScanNet_Seq(num_views=11,num_seq=50, max_thresh=100, split='test', resolution=224, seed=666)"
 ```
 
 ### 5.2 单卡训练（L2W）
@@ -144,21 +146,25 @@ python train.py \
 > L2W 的 `--model` 默认是 I2P，因此训练 L2W 时请显式传入 `Local2WorldModel(...)`。
 
 ```bash
-python train.py \
+python train_l2w.py \
 	--output_dir ./output/l2w_run \
 	--pretrained l2w \
 	--loss_func l2w \
-	--ref_ids 0 1 2 3 4 \
-	--model "Local2WorldModel(pos_embed='RoPE100', img_size=(224, 224), head_type='linear', output_mode='pts3d', depth_mode=('exp', -inf, inf), conf_mode=('exp', 1, inf), 
-    enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
-    mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 12, need_encoder=True)",    required=True
-    type=str, help="string containing the model to build" \
-	--epochs 8 \
-	--batch_size 12
+	--ref_ids 0 1 2 3 4 5 \
+	--epochs 20 \
+	--batch_size 16 \
+	--train_dataset "4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + 2000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)" \
+	--test_dataset "1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666) + 500 @ ScanNet_Seq(num_views=11,num_seq=50, max_thresh=100, split='test', resolution=224, seed=666)"
 ```
 ### 5.3 分布式训练
 
-参考 `./utils/train_i2p.sh` 以及 `./utils/train_l2w.sh` 脚本。
+一行命令，通过`torch run`执行训练 `train_i2p.sh`:
+
+```bash
+bash train_3dr.sh
+```
+
+或 分别训练i2p `./utils/train_i2p.sh` 以及l2w `./utils/train_l2w.sh`:
 
 ```bash
 # train the Image-to-Points model and the retrieval module
@@ -184,7 +190,7 @@ python train.py --depth_fuse --depth_fuse_channels 1 --depth_fuse_key img_depth 
 - 默认 **离线**（从图片目录读取一段序列并重建）。
 - 加 `--online` 则启用在线 pipeline（可从图片目录 / mp4 / URL 逐帧读取）。
 
-如果不指定 `--i2p_weights` / `--l2w_weights`，会自动从 Hugging Face 加载预训练。
+如果不指定 `--i2p_weights` / `--l2w_weights`，会使用默认构造的模型权重（可手动传入本地训练的 checkpoint）。
 
 ### 6.1 离线重建（图片序列目录）
 
@@ -221,6 +227,14 @@ python recon.py \
 	--online \
 	--save_dir results \
 	--test_name OnlineRun
+
+### 6.4 可选：深度校正（推理/重建）
+
+当输入 view 中包含 `depthmap` 时，可以开启 scale/shift 校正：
+
+```bash
+python recon.py --depth_correct --depth_correct_min_depth 1e-3 --depth_correct_max_depth 100
+```
 ```
 
 ---
@@ -254,6 +268,12 @@ python app.py
 
 ```bash
 python app.py --online
+
+可选参数：
+
+- `--server_port`：指定 Gradio 端口（默认从 7860 递增寻找空闲端口）
+- `--viser_server_port`：指定 Viser 端口（默认 8080）
+- `--local_network` 或 `--server_name`：在局域网或指定地址开放访问
 ```
 
 ---
