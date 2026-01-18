@@ -59,15 +59,15 @@ def get_args_parser():
                         enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
                         mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 11)",  #  required=True
                         type=str, help="string containing the model to build")
-    parser.add_argument('--pretrained', default="i2p", help='path of a starting checkpoint')
-    parser.add_argument('--pretrained_type', default='dust3r', help='type of pretrained checkpoint')
+    parser.add_argument('--pretrained', default="checkpoints/i2p/slam3r_i2p_stage1/checkpoint-best.pth", help='path of a starting checkpoint') # 
+    parser.add_argument('--pretrained_type', default='slam3r', help='type of pretrained checkpoint')
     parser.add_argument('--train_criterion', default="Jointnorm_ConfLoss(Jointnorm_Regr3D(L21, norm_mode='avg_dis'), alpha=0.2)", # required=True
                         type=str, help="train criterion")
     parser.add_argument('--test_criterion', default="Jointnorm_Regr3D(L21, norm_mode='avg_dis')", type=str, help="test criterion")
 
     # dataset
-    parser.add_argument('--train_dataset', default="4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + \
-                                                    2000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)", 
+    parser.add_argument('--train_dataset', default="1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + \
+                                                    1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)", 
                         type=str, help="training set") # required=True
     parser.add_argument('--test_dataset', default="1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666)+\
                                                     1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='test', resolution=224, seed=666)", 
@@ -190,6 +190,7 @@ def main(args):
     print("Model = %s" % str(model_without_ddp))
 
     if args.pretrained =="i2p"and not args.resume:
+        print('Loading pretrained: i2p')
         model.from_pretrained('siyan824/slam3r_i2p')
         # ckpt_path = os.path.join("./checkpoints", "i2p", "i2p-last.pth")
         # ckpt = torch.load(ckpt_path, map_location=device)
@@ -207,7 +208,7 @@ def main(args):
         # del ckpt  # in case it occupies memory
     elif args.pretrained and not args.resume:
         print('Loading pretrained: ', args.pretrained)
-        ckpt = torch.load(args.pretrained, map_location=device)
+        ckpt = torch.load(args.pretrained, map_location=device,weights_only=False)
         print(model.load_state_dict(ckpt['model'], 
                                     ckpt_type=args.pretrained_type, 
                                     strict=False))
@@ -221,7 +222,7 @@ def main(args):
 
         assist_model.to(device)
         print('Loading pretrained: ', args.assist_pretrained)
-        assist_ckpt = torch.load(args.assist_pretrained, map_location=device)
+        assist_ckpt = torch.load(args.assist_pretrained, map_location=device,weights_only=False)
         print(assist_model.load_state_dict(assist_ckpt['model'], 
                                            strict=True))
         del assist_ckpt  # in case it occupies memory
@@ -339,6 +340,8 @@ def main(args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
+    if torch.distributed.is_initialized():
+        torch.distributed.destroy_process_group()
 
     save_final_model(args, args.epochs, model_without_ddp, best_so_far=best_so_far)
 
@@ -417,6 +420,11 @@ def train_one_epoch(model: torch.nn.Module, assist_model: torch.nn.Module,
                                        args=args)
         loss, loss_details = loss_tuple  # criterion returns two values
         loss_value = float(loss.detach())
+        if isinstance(loss_details, dict):
+            loss_details = {
+                k: (v.item() if torch.is_tensor(v) else float(v))
+                for k, v in loss_details.items()
+            }
 
         if not math.isfinite(loss_value):
             print("Epoch {}, iter {}, Loss {}, skip".format(epoch, data_iter_step, loss_value))
@@ -456,6 +464,8 @@ def train_one_epoch(model: torch.nn.Module, assist_model: torch.nn.Module,
             for name, val in loss_details.items():
                 log_writer.add_scalar('train_'+name, val, epoch_1000x)
 
+        # del loss_details, loss_tuple
+
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
@@ -470,7 +480,7 @@ def test_one_epoch(model: torch.nn.Module, assist_model: torch.nn.Module,
 
     model.eval()
     metric_logger = misc.MetricLogger(delimiter="  ")
-    metric_logger.meters = defaultdict(lambda: misc.SmoothedValue(window_size=9**9))
+    metric_logger.meters = defaultdict(lambda: misc.SmoothedValue(window_size=20))
     header = 'Test Epoch: [{}]'.format(epoch)
 
     if log_writer is not None:
@@ -490,7 +500,17 @@ def test_one_epoch(model: torch.nn.Module, assist_model: torch.nn.Module,
                                        train=False, epoch=epoch,
                                        args=args)
         loss_value, loss_details = loss_tuple  # criterion returns two values
-        metric_logger.update(loss=float(loss_value), **loss_details)
+        if torch.is_tensor(loss_value):
+            loss_value = float(loss_value.detach())
+        else:
+            loss_value = float(loss_value)
+        if isinstance(loss_details, dict):
+            loss_details = {
+                k: (v.item() if torch.is_tensor(v) else float(v))
+                for k, v in loss_details.items()
+            }
+        metric_logger.update(loss=loss_value, **loss_details)
+        # del loss_tuple, loss_details, batch
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()

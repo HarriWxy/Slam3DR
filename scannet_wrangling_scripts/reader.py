@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser()
 # data paths
 parser.add_argument('--scans_folder',default='../scannet/scans', help='dataset root') #  required=True
 parser.add_argument('--scan_list_file', required=False, default=None, help='scan list file')
-parser.add_argument('--single_debug_scan_id', required=False, default="scene0017_02", help='single scan to debug')
+parser.add_argument('--single_debug_scan_id', required=False, default="scene0012_00", help='single scan to debug')
 parser.add_argument('--output_path', default='../scannet/scans', help='path to output folder') # required=True
 parser.add_argument('--export_depth_images', dest='export_depth_images', action='store_true')
 parser.add_argument('--export_color_images', dest='export_color_images', action='store_true')

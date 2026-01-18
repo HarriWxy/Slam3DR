@@ -138,6 +138,7 @@ def get_multi_data_loader(dataset, batch_size, return_id=False, num_workers=8, s
             num_workers=num_workers,
             pin_memory=pin_mem,
             drop_last=drop_last,
+            persistent_workers=True if num_workers > 0 else False,
         )
         dataloaders.append(data_loader)
 

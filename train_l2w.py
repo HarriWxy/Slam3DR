@@ -59,11 +59,11 @@ def get_args_parser():
                 enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
                 mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 12, need_encoder=True)",  #  required=True
                         type=str, help="string containing the model to build")
-    parser.add_argument('--pretrained', default="l2w", help='path of a starting checkpoint')
-    parser.add_argument('--pretrained_type', default='dust3r', help='type of pretrained checkpoint')
-    parser.add_argument('--train_criterion', default="Jointnorm_ConfLoss(Jointnorm_Regr3D(L21, norm_mode='avg_dis'), alpha=0.2)", # required=True
+    parser.add_argument('--pretrained', default="checkpoints/slam3r_l2w/checkpoint-best.pth", help='path of a starting checkpoint')
+    parser.add_argument('--pretrained_type', default='l2w', help='type of pretrained checkpoint')
+    parser.add_argument('--train_criterion', default="Jointnorm_ConfLoss(Jointnorm_Regr3D(L21, norm_mode=None), alpha=0.2)", # required=True
                         type=str, help="train criterion")
-    parser.add_argument('--test_criterion', default="Jointnorm_Regr3D(L21, norm_mode='avg_dis')", type=str, help="test criterion")
+    parser.add_argument('--test_criterion', default="Jointnorm_Regr3D(L21, norm_mode=None)", type=str, help="test criterion")
 
     # dataset
     parser.add_argument('--train_dataset', default="4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + \
@@ -84,7 +84,7 @@ def get_args_parser():
                         help="Batch size per GPU (effective batch size is batch_size * accum_iter * # gpus")
     parser.add_argument('--accum_iter', default=1, type=int,
                         help="Accumulate gradient iterations (for increasing the effective batch size under memory constraints)")
-    parser.add_argument('--epochs', default=2, type=int, help="Maximum number of epochs for the scheduler")
+    parser.add_argument('--epochs', default=20, type=int, help="Maximum number of epochs for the scheduler")
 
     parser.add_argument('--weight_decay', type=float, default=0.05, help="weight decay (default: 0.05)")
     parser.add_argument('--lr', type=float, default=5e-5, metavar='LR', help='learning rate (absolute lr)')
@@ -115,7 +115,7 @@ def get_args_parser():
 
     # output dir
     parser.add_argument('--save_config', action="store_true", help='redirect stdout to a txt file')
-    parser.add_argument('--output_dir', default='./output/', type=str, help="path where to save the output")
+    parser.add_argument('--output_dir', default='./checkpoints/slam3r_l2w', type=str, help="path where to save the output")
     parser.add_argument('--nosave', action="store_true", help='whether to save the weights')
     parser.add_argument('--eval', action="store_true", help='whether to do eval only')
     parser.add_argument('--save_last', type=int, default=1, help='whether to save last ckpt')
@@ -207,7 +207,7 @@ def main(args):
         # del ckpt  # in case it occupies memory
     elif args.pretrained and not args.resume:
         print('Loading pretrained: ', args.pretrained)
-        ckpt = torch.load(args.pretrained, map_location=device)
+        ckpt = torch.load(args.pretrained, map_location=device,weights_only=False)
         print(model.load_state_dict(ckpt['model'], 
                                     ckpt_type=args.pretrained_type, 
                                     strict=False))
@@ -221,7 +221,7 @@ def main(args):
 
         assist_model.to(device)
         print('Loading pretrained: ', args.assist_pretrained)
-        assist_ckpt = torch.load(args.assist_pretrained, map_location=device)
+        assist_ckpt = torch.load(args.assist_pretrained, map_location=device,weights_only=False)
         print(assist_model.load_state_dict(assist_ckpt['model'], 
                                            strict=True))
         del assist_ckpt  # in case it occupies memory

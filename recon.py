@@ -13,7 +13,7 @@ def load_model(model_name, weights, device='cuda'):
     model = eval(model_name)
     model.to(device)
     print('Loading pretrained: ', weights)
-    ckpt = torch.load(weights, map_location=device)
+    ckpt = torch.load(weights, map_location=device,weights_only=False)
     print(model.load_state_dict(ckpt['model'], strict=False))
     del ckpt  # in case it occupies memory
     return model 
