@@ -2,6 +2,8 @@
 
 为了满足赛题对于“输入单目RGB视频，输出3D重建可视化结果”以及“输入单目RGBD视频，输出3D可视化结果”的需求，我们基于 [Slam3R](https://github.com/PKU-VCL-3DV/SLAM3R) 框架，结合深度特征可选融合机制设计实现了 Slam3DR。
 
+更新了部分代码支持最新的 PyTorch 版本（2.9.1）以及 cuda 13.0。
+
 ---
 
 ## 1. 技术方案概述（Slam3R + Depth）
@@ -64,7 +66,7 @@ Slam3DR 的整体思路是将“多视图稠密 3D 点图预测”与“跨帧�
 ## 3. 环境搭建
 
 ```bash
-conda create -n slam3dr python=3.12 cmake=3.14.0
+conda create -n slam3dr python=3.12     # python 3.12 for open3D
 conda activate slam3dr 
 # install torch according to your cuda version
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
@@ -140,7 +142,8 @@ python train.py \
 	--epochs 20 \
 	--batch_size 16 \
 	--train_dataset "4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + 2000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)" \
-	--test_dataset "1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666) + 500 @ ScanNet_Seq(num_views=11,num_seq=50, max_thresh=100, split='test', resolution=224, seed=666)"
+	--test_dataset "1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666) + \
+					500 @ ScanNet_Seq(num_views=11,num_seq=50, max_thresh=100, split='test', resolution=224, seed=666)"
 ```
 
 ### 5.2 单卡训练（L2W）
@@ -156,7 +159,8 @@ python train_l2w.py \
 	--epochs 20 \
 	--batch_size 16 \
 	--train_dataset "4000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + 2000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)" \
-	--test_dataset "1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666) + 500 @ ScanNet_Seq(num_views=11,num_seq=50, max_thresh=100, split='test', resolution=224, seed=666)"
+	--test_dataset "1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666) +\
+					 500 @ ScanNet_Seq(num_views=11,num_seq=50, max_thresh=100, split='test', resolution=224, seed=666)"
 ```
 ### 5.3 分布式训练
 
