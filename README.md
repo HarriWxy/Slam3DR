@@ -128,6 +128,8 @@ python visualize.py \
 
 训练输出默认写入 `--output_dir`（默认 `./output/`），并会自动恢复 `checkpoint-last.pth`（如果存在）。
 
+ScanNet 训练模型可通过通过[网盘链接](https://pan.baidu.com/s/1MbtUm1UdFD45NboqITgRnA?pwd=3wg2)下载。
+
 ### 5.1 单卡训练（I2P）
 
 ```bash
@@ -227,14 +229,13 @@ python recon.py \
 	--online \
 	--save_dir results \
 	--test_name OnlineRun
-
+```
 ### 6.4 可选：深度校正（推理/重建）
 
 当输入 view 中包含 `depthmap` 时，可以开启 scale/shift 校正：
 
 ```bash
 python recon.py --depth_correct --depth_correct_min_depth 1e-3 --depth_correct_max_depth 100
-```
 ```
 
 ---
