@@ -535,13 +535,16 @@ class Local2WorldModel(Multiview3D):
         self.ponit_embedder = nn.Conv2d(3, self.dec_embed_dim, 
                                         kernel_size=self.patch_size, stride=self.patch_size)
         
-    def get_pe(self, views, ref_ids):
+    def get_pe(self, views:dict, ref_ids):
         """embed 3D points with a single conv layer
         landscape_only not tested yet"""
         pes = []
         for id, view in enumerate(views):
             if id in ref_ids:
-                pos = view['pts3d']
+                if 'pts3d_world' in view.keys():
+                    pos = view['pts3d_world']
+                else:
+                    pos = view['pts3d']
             else:
                 pos = view['pts3d_cam']
                 
