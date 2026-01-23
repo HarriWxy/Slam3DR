@@ -9,13 +9,13 @@ class Get_online_video:
         self.cap = cv2.VideoCapture(self.stream_url)
         if not self.cap.isOpened():
             print("can not access the video stream, please check your url and camera state")
-            exit()
+            # exit()
     
     def get_video_frame(self):
         ret, frame = self.cap.read()
         if not ret:
             print("the stream has been stopped")
-            self.cap.release()
+            # self.cap.release()
             return None 
         return frame
 

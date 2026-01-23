@@ -27,11 +27,11 @@ mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_min
 parser.add_argument("--l2w_model", type=str, default="Local2WorldModel(pos_embed='RoPE100', img_size=(224, 224), head_type='linear', output_mode='pts3d', depth_mode=('exp', -inf, inf), conf_mode=('exp', 1, inf), \
 enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
 mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 11, need_encoder=False)")
-parser.add_argument('--i2p_weights', default="checkpoints/i2p/slam3r_i2p/checkpoint-best.pth",type=str, help='path to the weights of i2p model')
-parser.add_argument("--l2w_weights", default="checkpoints/slam3r_l2w/checkpoint-best.pth", type=str, help="path to the weights of l2w model")
+parser.add_argument('--i2p_weights', type=str, help='path to the weights of i2p model') # default="checkpoints/i2p/slam3r_i2p/checkpoint-last.pth",
+parser.add_argument("--l2w_weights", type=str, help="path to the weights of l2w model") # default="checkpoints/slam3r_l2w/checkpoint-last.pth",
 input_group = parser.add_mutually_exclusive_group(required=False)
 input_group.add_argument("--dataset", type=str, help="a string indicating the dataset")
-input_group.add_argument("--img_dir", default="../Replica/office0/results", type=str, help="directory of the input images")
+input_group.add_argument("--img_dir", type=str, help="directory of the input images") # default="../Replica/office0/results", 
 parser.add_argument("--save_dir", type=str, default="results", help="directory to save the results") 
 parser.add_argument("--test_name", type=str, default="Replica_office0", help="name of the test") # required=True
 parser.add_argument('--save_all_views', action='store_true', help='whether to save all views respectively')
@@ -112,12 +112,14 @@ if __name__ == "__main__":
     if args.i2p_weights is not None:
         i2p_model = load_model(args.i2p_model, args.i2p_weights, args.device)
     else:
-        i2p_model = Image2PointsModel()
+        # i2p_model = Image2PointsModel()
+        i2p_model = Image2PointsModel.from_pretrained('siyan824/slam3r_i2p')
         i2p_model.to(args.device)
     if args.l2w_weights is not None:
         l2w_model = load_model(args.l2w_model, args.l2w_weights, args.device)
     else:
-        l2w_model = Local2WorldModel()
+        # l2w_model = Local2WorldModel()
+        l2w_model = Local2WorldModel.from_pretrained('siyan824/slam3r_l2w')
         l2w_model.to(args.device)
     i2p_model.eval()
     l2w_model.eval()

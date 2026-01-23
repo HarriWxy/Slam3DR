@@ -13,10 +13,10 @@ from slam3dr.viz import find_render_cam, render_frames, vis_frame_preds
 
 parser = argparse.ArgumentParser(description="Inference on a wild captured scene")
 parser.add_argument("--vis_cam", action="store_true", help="visualize camera poses")
-parser.add_argument("--vis_dir", type=str, required=True, help="directory to the predictions for visualization")
+parser.add_argument("--vis_dir", type=str, default="./results/Replica_office0", help="directory to the predictions for visualization") # required=True
 parser.add_argument("--save_stride", type=int, default=1, help="the stride for visualizing per-frame predictions")
-parser.add_argument("--enhance_z", action="store_true", help="enhance the z axis for better visualization")
-parser.add_argument("--conf_thres_l2w", type=float, default=12, help="confidence threshold for filter out low-confidence points in L2W")
+parser.add_argument("--enhance_z", default=True, action="store_true", help="enhance the z axis for better visualization")
+parser.add_argument("--conf_thres_l2w", type=float, default=1, help="confidence threshold for filter out low-confidence points in L2W")
 
 def vis(args):
     

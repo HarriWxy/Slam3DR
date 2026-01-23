@@ -2,10 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+tmp
 # results
 results/
 output/
+list.txt
 
 # C extensions
 *.so

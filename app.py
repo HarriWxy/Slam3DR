@@ -3,7 +3,7 @@ from slam3dr.app.app_offline import main_offline
 from slam3dr.app.app_online import main_online
 
 def get_args_parser():
-    parser = argparse.ArgumentParser(description="A demo for our SLAM3R")
+    parser = argparse.ArgumentParser(description="A demo for our SLAM3DR")
     parser_url = parser.add_mutually_exclusive_group()
     parser_url.add_argument("--local_network", action='store_true', default=False,
                             help="make app accessible on local network: address will be set to 0.0.0.0")
@@ -14,7 +14,7 @@ def get_args_parser():
                         help="will start viser server on this port (if available), default is 8080")
     parser.add_argument("--device", type=str, default='cuda', help="pytorch device")
     parser.add_argument("--tmp_dir", type=str, default="./tmp", help="value for tempfile.tempdir")
-    parser.add_argument("--online", action='store_true', help="whether to use the online demo app")
+    parser.add_argument("--online", default=True, action='store_true', help="whether to use the online demo app")
     
     return parser
 

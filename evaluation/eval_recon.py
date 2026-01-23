@@ -380,7 +380,7 @@ if __name__ == "__main__":
     os.makedirs(save_dir, exist_ok=True)
     np.random.seed(args.seed)
     
-    eval_conf_thres = 3
+    eval_conf_thres = 0.5
     num_sample_points = 200000
     voxelize_size = 0.005
     

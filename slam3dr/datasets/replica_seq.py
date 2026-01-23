@@ -20,7 +20,7 @@ from slam3dr.utils.image import imread_cv2
 
 class Replica(BaseStereoViewDataset):
     def __init__(self,  
-                 ROOT='data/Replica', 
+                 ROOT='../Replica', 
                  num_views=2, 
                  num_fetch_views=None,
                  sel_view=None, 

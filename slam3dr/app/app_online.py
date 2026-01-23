@@ -8,6 +8,7 @@ import functools
 import threading
 from queue import Queue,Empty
 import viser
+from slam3dr.app.mjpeg_proxy import MJPEGProxy
 
 from slam3dr.models import Local2WorldModel, Image2PointsModel
 from slam3dr.utils.device import to_numpy
@@ -17,6 +18,9 @@ from slam3dr.pipeline.recon_online_pipeline import *
 
 point_cloud_queue = Queue()
 viser_server_url = None
+
+_mjpeg_proxy = None
+_mjpeg_src = None
 
 def recon_scene(i2p_model:Image2PointsModel, 
                 l2w_model:Local2WorldModel, 
@@ -154,7 +158,7 @@ def recon_scene(i2p_model:Image2PointsModel,
 
     print(f"finish reconstructing {num_frame_read} frames")
     print(f'mean confidence for whole scene reconstruction: \
-          {torch.tensor(registered_confs_mean).mean().item():.2f}')
+          {torch.tensor(registered_confs_mean).float().mean().item():.2f}') 
     
     print(f"{len(fail_view)} views with low confidence: ", 
           {key:round(fail_view[key],2) for key in fail_view.keys()})
@@ -188,7 +192,7 @@ def server_viser(args):
         point_size=0.001,
     )
 
-    conf_thres_res = 12
+    conf_thres_res = 12 # 12
     num_points_per_frame = 20000
     max_num_points_all = 3000000
     
@@ -401,7 +405,7 @@ def change_inputfile_type(input_type):
         video_gallery = gradio.update(visible=False)
 
     return update_file, update_webcam, update_external_webcam_html,\
-            update_video_fps, update_url,update_url,update_url,update_url,\
+            update_video_fps, update_url,update_url,False,False,\
                 image_gallery, video_gallery
     
 def change_kf_stride_type(kf_stride):
@@ -434,7 +438,7 @@ def change_buffer_strategy(buffer_strategy):
     return buffer_size
 
 def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port):
-    recon_scene_func = functools.partial(recon_scene, i2p_model, l2w_model, device)
+    recon_scene_func = functools.partial(recon_scene, i2p_model, l2w_model, device) # 
     
     with gradio.Blocks(css=""".gradio-container {margin: 0 !important; min-width: 100%};""", title="SLAM3R Demo",) as demo:
         # scene state is save so that you can change num_points_save... without rerunning the inference
@@ -442,11 +446,11 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
         tmpdir_name = gradio.State(tmpdirname)
         auth_url = gradio.State("")
         
-        gradio.HTML('<h2 style="text-align: center;">SLAM3R Demo</h2>')
+        gradio.HTML('<h2 style="text-align: center;">SLAM3DR Demo</h2>')
         with gradio.Column():
             with gradio.Row():
                 with gradio.Column():
-                    input_type = gradio.Dropdown([ "directory", "images", "video"],
+                    input_type = gradio.Dropdown([ "directory", "images", "video","webcamera"],
                                                 scale=1,
                                                 value='directory', label="select type of input files")
                     frame_extract_interval = gradio.Number(value=1,
@@ -582,21 +586,33 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
                             outputs=outmodel)
             confirm_button.click(fn=change_web_camera_url,
                                  inputs=[inputfiles_external_webcam_html, input_url_web_cam, 
-                                         web_cam_account, web_cam_password,auth_url],
+                                         web_cam_account, web_cam_password, auth_url],
                                  outputs=[inputfiles_external_webcam_html, auth_url])
 
     demo.launch(share=False, server_name=server_name, server_port=server_port,debug=True)
 
-def change_web_camera_url(inputs_external_webcam, web_url, web_cam_account, web_cam_password, auth_url):
-    protocol, rest_of_url = web_url.split("://")
+def change_web_camera_url(inputs_external_webcam, web_url, web_cam_account, web_cam_password, auth_url): 
+    try:
+        protocol, rest_of_url = web_url.split("://")
+    except:
+        rest_of_url = web_url + ":4747/video"
+        web_url = f"http://{rest_of_url}"
 
-    auth_url = gradio.State(f"{protocol}://{web_cam_account}:{web_cam_password}@{rest_of_url}")
-    
+    global _mjpeg_proxy, _mjpeg_src
+    if _mjpeg_proxy is None or _mjpeg_src != web_url:
+        if _mjpeg_proxy is not None:
+            _mjpeg_proxy.stop()
+        _mjpeg_proxy = MJPEGProxy(web_url, host="127.0.0.1", port=8098, width=640, height=480)
+        _mjpeg_proxy.start()
+        _mjpeg_src = web_url
+
+    proxy_url = "http://127.0.0.1:8098/feed"
+    auth_url = gradio.State(proxy_url)
 
     inputs_external_webcam = gradio.HTML(
                     f"""
                     <p>Web Camera presentation:</p>
-                    <iframe src="{web_url}" width="100%" height="400px" style="border:none;"></iframe>
+                    <iframe src="{proxy_url}" width="100%" height="400px" style="border:none;"></iframe>
                     """,
                     visible=True,
                 )
@@ -616,8 +632,8 @@ def server_gradio(args):
     else:
         server_name = '0.0.0.0' if args.local_network else '127.0.0.1'
     
-    i2p_model = Image2PointsModel()
-    l2w_model = Local2WorldModel()
+    i2p_model = Image2PointsModel.from_pretrained('siyan824/slam3r_i2p') # Image2PointsModel()
+    l2w_model = Local2WorldModel.from_pretrained('siyan824/slam3r_l2w') # Local2WorldModel()
     i2p_model.to(args.device)
     l2w_model.to(args.device)
     i2p_model.eval()
@@ -635,5 +651,8 @@ def main_online(parser:argparse.ArgumentParser):
     displayer.start()
     server_gradio(args)
     
+
+
+
 if __name__ == "__main__":
     main_online(argparse.ArgumentParser())

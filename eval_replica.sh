@@ -15,7 +15,7 @@ CONF_THRES_I2P=1.
 # the parameter below have nothing to do with the evaluation
 NUM_POINTS_SAVE=1000000
 CONF_THRES_L2W=0.9
-GPU_ID=0
+GPU_ID=-1
 
 SCENE_NAMES=("office0") #  "office1" "office2" "office3" "office4" "room0" "room1" "room2"
 
@@ -26,20 +26,20 @@ TEST_NAME="Replica_${SCENE_NAME}"
 
 echo "--------Start reconstructing scene ${SCENE_NAME} with test name ${TEST_NAME}--------"
 
-# python recon.py \
-# --test_name "${TEST_NAME}" \
-# --img_dir "../Replica/${SCENE_NAME}/results" \
-# --gpu_id $GPU_ID \
-# --keyframe_stride $KEYFRAME_STRIDE \
-# --win_r $WIN_R \
-# --num_scene_frame $NUM_SCENE_FRAME \
-# --initial_winsize $INITIAL_WINSIZE \
-# --conf_thres_l2w $CONF_THRES_L2W \
-# --conf_thres_i2p $CONF_THRES_I2P \
-# --num_points_save $NUM_POINTS_SAVE \
-# --update_buffer_intv $UPDATE_BUFFER_INTV \
-# --max_num_register $MAX_NUM_REGISTER \
-# --save_for_eval
+python recon.py \
+--test_name "${TEST_NAME}" \
+--img_dir "../Replica/${SCENE_NAME}/results" \
+--gpu_id $GPU_ID \
+--keyframe_stride $KEYFRAME_STRIDE \
+--win_r $WIN_R \
+--num_scene_frame $NUM_SCENE_FRAME \
+--initial_winsize $INITIAL_WINSIZE \
+--conf_thres_l2w $CONF_THRES_L2W \
+--conf_thres_i2p $CONF_THRES_I2P \
+--num_points_save $NUM_POINTS_SAVE \
+--update_buffer_intv $UPDATE_BUFFER_INTV \
+--max_num_register $MAX_NUM_REGISTER \
+--save_for_eval
 
 # echo "--------Start evaluating scene ${SCENE_NAME} with test name ${TEST_NAME}--------"
 
