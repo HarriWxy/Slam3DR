@@ -78,7 +78,7 @@ pip install -r requirements_optional.txt
 3. 可选：使用 XFormers 和为 RoPE 编写的自定义 CUDA 内核来加速 SLAM3DR
 ```bash
 # install XFormers according to your pytorch version, see https://github.com/facebookresearch/xformers
-pip install xformers xformers --index-url https://download.pytorch.org/whl/cu130
+pip install xformers --index-url https://download.pytorch.org/whl/cu130
 # compile cuda kernels for RoPE
 # if the compilation fails, try the propoesd solution: https://github.com/CUT3R/CUT3R/issues/7.
 cd slam3dr/pos_embed/curope/

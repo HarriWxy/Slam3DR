@@ -1,9 +1,11 @@
 import cv2
 import threading
-import multiprocessing as mp
+import numpy as np
 import time
 from http import server
+from PIL import Image
 import socketserver
+import io
 
 class _MJPEGHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -111,12 +113,14 @@ def test_run(src_url, width=640, height=480):
 # test
 if __name__ == "__main__":
     src_url = "http://192.168.1.111:4747/video"
-    _mjpeg_proxy = MJPEGProxy(src_url, host="127.0.0.1", port=8098, width=640, height=480)
+    _mjpeg_proxy = MJPEGProxy(src_url, host="127.0.0.1", port=8098, width=640, height=360)
     _mjpeg_proxy.start()
-    # width = 640
-    # height = 480
+    width = 640
+    height = 480
+    # test_run(src_url, width, height)
     # a = threading.Thread(target=test_run, args=(src_url, width, height), daemon=False)
     # a.start()
+
     # a.join()
 
     # cap.release()

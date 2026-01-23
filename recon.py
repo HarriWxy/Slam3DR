@@ -27,8 +27,8 @@ mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_min
 parser.add_argument("--l2w_model", type=str, default="Local2WorldModel(pos_embed='RoPE100', img_size=(224, 224), head_type='linear', output_mode='pts3d', depth_mode=('exp', -inf, inf), conf_mode=('exp', 1, inf), \
 enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
 mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 11, need_encoder=False)")
-parser.add_argument('--i2p_weights', type=str, help='path to the weights of i2p model') # default="checkpoints/i2p/slam3r_i2p/checkpoint-last.pth",
-parser.add_argument("--l2w_weights", type=str, help="path to the weights of l2w model") # default="checkpoints/slam3r_l2w/checkpoint-last.pth",
+parser.add_argument('--i2p_weights', type=str, default="checkpoints/i2p/slam3r_i2p_stage1/checkpoint-last.pth", help='path to the weights of i2p model') # 
+parser.add_argument("--l2w_weights", default="checkpoints/slam3r_l2w/checkpoint-last.pth", type=str, help="path to the weights of l2w model") # 
 input_group = parser.add_mutually_exclusive_group(required=False)
 input_group.add_argument("--dataset", type=str, help="a string indicating the dataset")
 input_group.add_argument("--img_dir", type=str, help="directory of the input images") # default="../Replica/office0/results", 

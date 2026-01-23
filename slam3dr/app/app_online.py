@@ -440,7 +440,7 @@ def change_buffer_strategy(buffer_strategy):
 def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port):
     recon_scene_func = functools.partial(recon_scene, i2p_model, l2w_model, device) # 
     
-    with gradio.Blocks(css=""".gradio-container {margin: 0 !important; min-width: 100%};""", title="SLAM3R Demo",) as demo:
+    with gradio.Blocks(css=""".gradio-container {margin: 0 !important; min-width: 100%};""", title="SLAM3DR Demo",) as demo:
         # scene state is save so that you can change num_points_save... without rerunning the inference
         per_frame_res = gradio.State(None)
         tmpdir_name = gradio.State(tmpdirname)
@@ -599,12 +599,19 @@ def change_web_camera_url(inputs_external_webcam, web_url, web_cam_account, web_
         web_url = f"http://{rest_of_url}"
 
     global _mjpeg_proxy, _mjpeg_src
-    if _mjpeg_proxy is None or _mjpeg_src != web_url:
-        if _mjpeg_proxy is not None:
-            _mjpeg_proxy.stop()
-        _mjpeg_proxy = MJPEGProxy(web_url, host="127.0.0.1", port=8098, width=640, height=480)
+    # if _mjpeg_proxy is None or _mjpeg_src != web_url:
+    if _mjpeg_proxy is not None:
+        _mjpeg_proxy.stop()
+        _mjpeg_proxy = None
+        _mjpeg_src = None
+    try:
+        _mjpeg_proxy = MJPEGProxy(web_url, host="127.0.0.1", port=8098, width=640, height=360)
         _mjpeg_proxy.start()
         _mjpeg_src = web_url
+    except Exception as e:
+        print(f"Failed to start MJPEG proxy for {web_url}: {e}")
+        _mjpeg_proxy = None
+        _mjpeg_src = None
 
     proxy_url = "http://127.0.0.1:8098/feed"
     auth_url = gradio.State(proxy_url)
@@ -640,7 +647,7 @@ def server_gradio(args):
     l2w_model.eval()
 
     # slam3r will write the 3D model inside tmpdirname
-    with tempfile.TemporaryDirectory(suffix='slam3r_gradio_demo') as tmpdirname:
+    with tempfile.TemporaryDirectory(suffix='slam3dr_gradio_demo') as tmpdirname:
         main_demo(i2p_model, l2w_model, args.device, tmpdirname, server_name, args.server_port)
 
 

@@ -7,7 +7,7 @@
 KEYFRAME_STRIDE=20
 UPDATE_BUFFER_INTV=3
 MAX_NUM_REGISTER=10
-WIN_R=5
+WIN_R=11
 NUM_SCENE_FRAME=10
 INITIAL_WINSIZE=5 
 CONF_THRES_I2P=1.
@@ -39,12 +39,12 @@ python recon.py \
 --num_points_save $NUM_POINTS_SAVE \
 --update_buffer_intv $UPDATE_BUFFER_INTV \
 --max_num_register $MAX_NUM_REGISTER \
---save_for_eval
+# --save_for_eval
 
 # echo "--------Start evaluating scene ${SCENE_NAME} with test name ${TEST_NAME}--------"
 
-python evaluation/eval_recon.py \
---test_name="${TEST_NAME}" \
---gt_pcd="../gt/Replica/${SCENE_NAME}_pcds.npy"
+# python evaluation/eval_recon.py \
+# --test_name="${TEST_NAME}" \
+# --gt_pcd="../gt/Replica/${SCENE_NAME}_pcds.npy"
 
 done

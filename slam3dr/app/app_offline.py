@@ -466,12 +466,12 @@ def change_buffer_strategy(buffer_strategy):
 def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port):
     recon_scene_func = functools.partial(recon_scene, i2p_model, l2w_model, device)
     
-    with gradio.Blocks(css=""".gradio-container {margin: 0 !important; min-width: 100%};""", title="SLAM3R Demo") as demo:
+    with gradio.Blocks(css=""".gradio-container {margin: 0 !important; min-width: 100%};""", title="SLAM3DR Demo") as demo:
         # scene state is save so that you can change num_points_save... without rerunning the inference
         per_frame_res = gradio.State(None)
         tmpdir_name = gradio.State(tmpdirname)
         
-        gradio.HTML('<h2 style="text-align: center;">SLAM3R Demo</h2>')
+        gradio.HTML('<h2 style="text-align: center;">SLAM3DR Demo</h2>')
         with gradio.Column():
             with gradio.Row():
                 input_type = gradio.Dropdown([ "directory", "images", "video"],
