@@ -453,7 +453,7 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
                     input_type = gradio.Dropdown([ "directory", "images", "video","webcamera"],
                                                 scale=1,
                                                 value='directory', label="select type of input files")
-                    frame_extract_interval = gradio.Number(value=1,
+                    frame_extract_interval = gradio.Number(value=30,
                                                     scale=0,
                                                     interactive=True,
                                                     visible=False,
@@ -501,11 +501,11 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
                                               visible=True, interactive=True, 
                                               label="stride between keyframes",
                                               info="For I2P reconstruction!")
-                win_r = gradio.Number(value=5, precision=0, minimum=1, maximum=200,
+                win_r = gradio.Number(value=11, precision=0, minimum=1, maximum=200,
                                       interactive=True, 
                                       label="the radius of the input window",
                                       info="For I2P reconstruction!")
-                initial_winsize = gradio.Number(value=5, precision=0, minimum=2, maximum=200,
+                initial_winsize = gradio.Number(value=11, precision=0, minimum=2, maximum=200,
                                       interactive=True, 
                                       label="the number of frames for initialization",
                                       info="For I2P reconstruction!")
@@ -639,12 +639,28 @@ def server_gradio(args):
     else:
         server_name = '0.0.0.0' if args.local_network else '127.0.0.1'
     
-    i2p_model = Image2PointsModel.from_pretrained('siyan824/slam3r_i2p') # Image2PointsModel()
-    l2w_model = Local2WorldModel.from_pretrained('siyan824/slam3r_l2w') # Local2WorldModel()
+    # if False:
+    i2p_model = Image2PointsModel.from_pretrained('./pre_models/slam3r_i2p') # Image2PointsModel()
+    l2w_model = Local2WorldModel.from_pretrained('./pre_models/slam3r_l2w') # Local2WorldModel()
     i2p_model.to(args.device)
     l2w_model.to(args.device)
     i2p_model.eval()
     l2w_model.eval()
+    # else:
+    #     from recon import load_model
+    #     i2p_model = "Image2PointsModel(pos_embed='RoPE100', img_size=(224, 224), head_type='linear', output_mode='pts3d', depth_mode=('exp', -inf, inf), conf_mode=('exp', 1, inf), \
+    #                 enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
+    #                 mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 11)"
+    #     l2w_model = "Local2WorldModel(pos_embed='RoPE100', img_size=(224, 224), head_type='linear', output_mode='pts3d', depth_mode=('exp', -inf, inf), conf_mode=('exp', 1, inf), \
+    #                 enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
+    #                 mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 11, need_encoder=False)"
+    #     i2p_weights = "checkpoints/i2p/slam3r_i2p_stage1/checkpoint-last.pth"
+    #     l2w_weights = "checkpoints/slam3r_l2w/checkpoint-last.pth"
+    #     i2p_model = load_model(i2p_model, i2p_weights, args.device)
+    #     l2w_model = load_model(l2w_model, l2w_weights, args.device)
+    #     i2p_model.eval()
+    #     l2w_model.eval()
+
 
     # slam3r will write the 3D model inside tmpdirname
     with tempfile.TemporaryDirectory(suffix='slam3dr_gradio_demo') as tmpdirname:

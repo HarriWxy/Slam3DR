@@ -506,11 +506,11 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
                                               visible=False, interactive=True, 
                                               label="stride between keyframes",
                                               info="For I2P reconstruction!")
-                win_r = gradio.Number(value=5, precision=0, minimum=1, maximum=200,
+                win_r = gradio.Number(value=11, precision=0, minimum=1, maximum=200,
                                       interactive=True, 
                                       label="the radius of the input window",
                                       info="For I2P reconstruction!")
-                initial_winsize = gradio.Number(value=5, precision=0, minimum=2, maximum=200,
+                initial_winsize = gradio.Number(value=11, precision=0, minimum=2, maximum=200,
                                       interactive=True, 
                                       label="the number of frames for initialization",
                                       info="For I2P reconstruction!")
@@ -528,7 +528,7 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
                                            value='reservoir', interactive=True,  
                                            label="strategy for buffer management",
                                            info="For L2W reconstruction!")
-                buffer_size = gradio.Number(value=100, precision=0, minimum=1,
+                buffer_size = gradio.Number(value=1000, precision=0, minimum=1,
                                       interactive=True, 
                                       visible=True,
                                       label="size of the buffering set",

@@ -42,6 +42,9 @@ class _MJPEGHandler(server.BaseHTTPRequestHandler):
                 self.wfile.write(data)
                 self.wfile.write(b"\r\n")
             time.sleep(0.03)
+        # if proxy.stop_event.is_set():
+        #     print("stream stopped")
+        #     pass
 
 class _ThreadingHTTPServer(socketserver.ThreadingMixIn, server.HTTPServer):
     daemon_threads = False
@@ -62,11 +65,17 @@ class MJPEGProxy:
 
     def _capture_loop(self):
         cap = cv2.VideoCapture(self.src_url)
+        counter_fail = 0
         while not self.stop_event.is_set():
             ok, frame = cap.read()
             if not ok:
-                time.sleep(0.01)
+                time.sleep(0.03)
+                counter_fail += 1
+                if counter_fail > 100:
+                    # print("stopped capturing due to too many failures")
+                    break
                 continue
+            counter_fail = 0
             if self.width and self.height:
                 frame = cv2.resize(frame, (self.width, self.height),interpolation=cv2.INTER_CUBIC)
             ok, jpg = cv2.imencode(".jpg", frame)
@@ -74,6 +83,7 @@ class MJPEGProxy:
                 with self.lock:
                     self.latest_jpeg = jpg.tobytes()
         cap.release()
+        self.stop_event.set()
 
     def start(self):
         if self._server is not None:

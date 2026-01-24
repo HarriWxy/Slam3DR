@@ -42,7 +42,7 @@ parser.add_argument("--keyframe_stride", type=int, default=20,
                     help="the stride of sampling keyframes, -1 for auto adaptation")
 parser.add_argument("--initial_winsize", type=int, default=5, 
                     help="the number of initial frames to be used for scene initialization")
-parser.add_argument("--win_r", type=int, default=5, 
+parser.add_argument("--win_r", type=int, default=11, 
                     help="the radius of the input window for I2P model")
 parser.add_argument("--conf_thres_i2p", type=float, default=1.5, 
                     help="confidence threshold for the i2p model")

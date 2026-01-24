@@ -8,6 +8,7 @@ results/
 output/
 list.txt
 
+*models
 # C extensions
 *.so
 .vscode/
