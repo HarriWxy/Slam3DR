@@ -47,6 +47,19 @@ def get_data_loader(dataset, batch_size, num_workers=8, shuffle=True, drop_last=
 
     return data_loader
 
+
+def get_seq_eval_data_loader(dataset, batch_size, num_workers=8, shuffle=True, drop_last=True, pin_mem=True):
+    import torch
+    from slam3dr.utils.croco_misc import get_world_size, get_rank
+
+    # pytorch dataset
+    if isinstance(dataset, str):
+        dataset = eval(dataset)
+
+    world_size = get_world_size()
+    rank = get_rank()
+
+
 class MultiDataLoader:
     def __init__(self, dataloaders:list, return_id=False):
         self.dataloaders = dataloaders

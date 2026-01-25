@@ -8,7 +8,7 @@ from slam3dr.models import Image2PointsModel, Local2WorldModel, inf
 from slam3dr.utils.device import to_numpy
 import os
 from recon import load_model
-
+from slam3dr.datasets import get_data_loader
 
 os.environ['CUDA_VISIBLE_DEVICES']='0'
 
@@ -21,15 +21,15 @@ mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_min
 parser.add_argument("--l2w_model", type=str, default="Local2WorldModel(pos_embed='RoPE100', img_size=(224, 224), head_type='linear', output_mode='pts3d', depth_mode=('exp', -inf, inf), conf_mode=('exp', 1, inf), \
 enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
 mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 11, need_encoder=False)")
-parser.add_argument('--i2p_weights', type=str, default="checkpoints/i2p/slam3r_i2p_stage1/checkpoint-last.pth", help='path to the weights of i2p model') # 
-parser.add_argument("--l2w_weights", default="checkpoints/slam3r_l2w/checkpoint-last.pth", type=str, help="path to the weights of l2w model") # 
+parser.add_argument('--i2p_weights', type=str,  help='path to the weights of i2p model') # default="checkpoints/i2p/slam3r_i2p_stage1/checkpoint-last.pth",
+parser.add_argument("--l2w_weights",  type=str, help="path to the weights of l2w model") # default="checkpoints/slam3r_l2w/checkpoint-last.pth",
 input_group = parser.add_mutually_exclusive_group(required=False)
-input_group.add_argument("--dataset", type=str, help="a string indicating the dataset")
+input_group.add_argument("--dataset",  type=str, help="a string indicating the dataset") # default="ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='test', resolution=224, seed=666)",
 
-input_group.add_argument("--img_dir", default="../scannet/scans/scene0000_01/sensor_data", type=str, help="directory of the input images") # default="../Replica/office0/results", 
+input_group.add_argument("--img_dir", default="../Replica/office3/results", type=str, help="directory of the input images") #  default="../scannet/scans/scene0000_01/sensor_data",
 
 parser.add_argument("--save_dir", type=str, default="results", help="directory to save the results") 
-parser.add_argument("--test_name", type=str, default="Replica_office0", help="name of the test") # required=True
+parser.add_argument("--test_name", type=str, default="Replica_office33", help="name of the test") # required=True
 parser.add_argument('--save_all_views', action='store_true', help='whether to save all views respectively')
 
 
@@ -47,7 +47,7 @@ parser.add_argument("--num_scene_frame", type=int, default=10,
                         buffering set when registering new keyframes")
 parser.add_argument("--max_num_register", type=int, default=10, 
                     help="maximal number of frames to be registered in one go")
-parser.add_argument("--conf_thres_l2w", type=float, default=0.5,  # 12
+parser.add_argument("--conf_thres_l2w", type=float, default=12,  # 12
                     help="confidence threshold for the l2w model(when saving final results)")
 parser.add_argument("--num_points_save", type=int, default = 1000000, 
                     help="number of points to be saved in the final reconstruction")
@@ -62,7 +62,7 @@ parser.add_argument("--retrieve_freq",type = int,default=1,
                     help="(online mode only) frequency of retrieving reference frames")
 parser.add_argument("--update_buffer_intv", type=int, default=3, 
                     help="the interval of updating the buffering set")
-parser.add_argument('--buffer_size', type=int, default=100, 
+parser.add_argument('--buffer_size', type=int, default=1000, 
                     help='maximal size of the buffering set, -1 if infinite')
 parser.add_argument("--buffer_strategy", type=str, choices=['reservoir', 'fifo'], default='reservoir', 
                     help='strategy for maintaining the buffering set: reservoir-sampling or first-in-first-out')
@@ -126,9 +126,7 @@ if __name__ == "__main__":
 
     if args.dataset:
         print("Loading dataset: ", args.dataset)
-        dataset = Seq_Data(img_dir=args.dataset, \
-            img_size=224, silent=False, sample_freq=1, \
-            start_idx=0, num_views=-1, start_freq=1, to_tensor=True)
+        # dataset = get_data_loader(args.dataset, batch_size=1, return_id=False, num_workers=4, shuffle=False, drop_last=False, pin_mem=True)
     elif args.img_dir:
         dataset = Seq_Data(img_dir=args.img_dir, img_size=224, to_tensor=True)
     if hasattr(dataset, "set_epoch"):

@@ -13,7 +13,7 @@ from slam3dr.viz import find_render_cam, render_frames, vis_frame_preds
 
 parser = argparse.ArgumentParser(description="Inference on a wild captured scene")
 parser.add_argument("--vis_cam", action="store_true", help="visualize camera poses")
-parser.add_argument("--vis_dir", type=str, default="./results/Replica_office0", help="directory to the predictions for visualization") # required=True
+parser.add_argument("--vis_dir", type=str, default="./results/Replica_office33", help="directory to the predictions for visualization") # required=True
 parser.add_argument("--save_stride", type=int, default=1, help="the stride for visualizing per-frame predictions")
 parser.add_argument("--enhance_z", default=True, action="store_true", help="enhance the z axis for better visualization")
 parser.add_argument("--conf_thres_l2w", type=float, default=1, help="confidence threshold for filter out low-confidence points in L2W")
@@ -94,35 +94,35 @@ def vis(args):
     # find the camera parameters for rendering incremental reconstruction process
     # It will show a window of open3d, and you can rotate and translate the camera
     # press space to save the camera parameters selected
-    camera_parameters = find_render_cam(recon_pcd, c2ws if args.vis_cam else None)
-    # render the incremental reconstruction process
-    render_frames(registered_pcds, rgb_imgs, camera_parameters, root_dir, 
-                  mask=(registered_confs > args.conf_thres_l2w),
-                  init_ids=init_ids,
-                  c2ws=c2ws if args.vis_cam else None,
-                  sample_ratio=1/args.save_stride,
-                  save_stride=args.save_stride,
-                  fps=10, 
-                  vis_cam=args.vis_cam,
-                  )
+    # camera_parameters = find_render_cam(recon_pcd, c2ws if args.vis_cam else None)
+    # # render the incremental reconstruction process
+    # render_frames(registered_pcds, rgb_imgs, camera_parameters, root_dir, 
+    #               mask=(registered_confs > args.conf_thres_l2w),
+    #               init_ids=init_ids,
+    #               c2ws=c2ws if args.vis_cam else None,
+    #               sample_ratio=1/args.save_stride,
+    #               save_stride=args.save_stride,
+    #               fps=10, 
+    #               vis_cam=args.vis_cam,
+    #               )
     
     # save visualizations of per-frame predictions, and combine them into a video
-    vis_frame_preds(local_confs[::args.save_stride], type="I2P_conf", 
-                    save_path=root_dir)
-    vis_frame_preds(registered_confs[::args.save_stride], type="L2W_conf",
-                    save_path=root_dir)
-    vis_frame_preds(local_pcds[::args.save_stride], type="I2P_pcds", 
-                    save_path=root_dir,
-                    enhance_z=args.enhance_z
-                    )
-    vis_frame_preds(registered_pcds[::args.save_stride], type="L2W_pcds", 
-                    save_path=root_dir,
-                    )
-    vis_frame_preds(rgb_imgs[::args.save_stride], type="imgs", 
-                    save_path=root_dir,
-                    norm_dims=None,
-                    cmap=False
-                    )
+    # vis_frame_preds(local_confs[::args.save_stride], type="I2P_conf", 
+    #                 save_path=root_dir)
+    # vis_frame_preds(registered_confs[::args.save_stride], type="L2W_conf",
+    #                 save_path=root_dir)
+    # vis_frame_preds(local_pcds[::args.save_stride], type="I2P_pcds", 
+    #                 save_path=root_dir,
+    #                 enhance_z=args.enhance_z
+    #                 )
+    # vis_frame_preds(registered_pcds[::args.save_stride], type="L2W_pcds", 
+    #                 save_path=root_dir,
+    #                 )
+    # vis_frame_preds(rgb_imgs[::args.save_stride], type="imgs", 
+    #                 save_path=root_dir,
+    #                 norm_dims=None,
+    #                 cmap=False
+    #                 )
     
 if __name__ == "__main__":
     args = parser.parse_args()

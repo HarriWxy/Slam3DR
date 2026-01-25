@@ -453,7 +453,7 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
                     input_type = gradio.Dropdown([ "directory", "images", "video","webcamera"],
                                                 scale=1,
                                                 value='directory', label="select type of input files")
-                    frame_extract_interval = gradio.Number(value=30,
+                    frame_extract_interval = gradio.Number(value=15,
                                                     scale=0,
                                                     interactive=True,
                                                     visible=False,
@@ -528,7 +528,7 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
                                            value='reservoir', interactive=True,  
                                            label="strategy for buffer management",
                                            info="For L2W reconstruction!")
-                buffer_size = gradio.Number(value=100, precision=0, minimum=1,
+                buffer_size = gradio.Number(value=1000, precision=0, minimum=1,
                                       interactive=True, 
                                       visible=True,
                                       label="size of the buffering set",
@@ -553,8 +553,8 @@ def main_demo(i2p_model, l2w_model, device, tmpdirname, server_name, server_port
                                       )
             
             with gradio.Row():
-                outmodel = gradio.Model3D(height=500, clear_color=(0.,0.,0.,0.3)) 
-                outviser = gradio.HTML(f'<iframe src="{viser_server_url}" width="100%" height="500px" style="border:none;"></iframe>', visible=True)
+                outmodel = gradio.Model3D(height=600, clear_color=(0.,0.,0.,0.3)) 
+                outviser = gradio.HTML(f'<iframe src="{viser_server_url}" width="100%" height="600px" style="border:none;"></iframe>', visible=True)
                 
             # events
             inputfiles.change(display_inputs,
@@ -640,8 +640,8 @@ def server_gradio(args):
         server_name = '0.0.0.0' if args.local_network else '127.0.0.1'
     
     # if False:
-    i2p_model = Image2PointsModel.from_pretrained('./pre_models/slam3r_i2p') # Image2PointsModel()
-    l2w_model = Local2WorldModel.from_pretrained('./pre_models/slam3r_l2w') # Local2WorldModel()
+    i2p_model = Image2PointsModel.from_pretrained('./pre_models/slam3dr_i2p') # Image2PointsModel()
+    l2w_model = Local2WorldModel.from_pretrained('./pre_models/slam3dr_l2w') # Local2WorldModel()
     i2p_model.to(args.device)
     l2w_model.to(args.device)
     i2p_model.eval()

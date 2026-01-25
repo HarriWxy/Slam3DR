@@ -190,7 +190,7 @@ def main(args):
     print("Model = %s" % str(model_without_ddp))
 
     if args.pretrained =="i2p"and not args.resume:
-        model.from_pretrained('siyan824/slam3r_i2p')
+        model.from_pretrained('./pre_models/slam3dr_i2p')
         # ckpt_path = os.path.join("./checkpoints", "i2p", "i2p-last.pth")
         # ckpt = torch.load(ckpt_path, map_location=device)
         # print(model.load_state_dict(ckpt['model'], 
@@ -198,7 +198,7 @@ def main(args):
         #                             strict=False))
         # del ckpt  # in case it occupies memory
     elif args.pretrained =="l2w" and not args.resume:
-        model.from_pretrained('siyan824/slam3r_l2w')
+        model.from_pretrained('./pre_models/slam3dr_l2w')
         # ckpt_path = os.path.join("./checkpoints", "l2w", "l2w-last.pth")
         # ckpt = torch.load(ckpt_path, map_location=device)
         # print(model.load_state_dict(ckpt['model'], 

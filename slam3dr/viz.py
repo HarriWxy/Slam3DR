@@ -12,6 +12,7 @@ import os.path as osp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from skimage import exposure
+from PIL import Image
 
 
 def render_scene(vis, geometry, camera_parameters, bg_color=[1,1,1], point_size=1., 
@@ -39,7 +40,7 @@ def render_scene(vis, geometry, camera_parameters, bg_color=[1,1,1], point_size=
         image_uint8 = (np.asarray(image) * 255).astype(np.uint8)
         return image_uint8
 
-def render_frames(pts_all, image_all, camera_parameters, output_dir, mask=None, save_video=True, save_camera=True,
+def render_frames(pts_all, image_all, camera_parameters, output_dir, mask=None, save_video=False, save_camera=True,
                   init_ids=[],
                   c2ws=None, 
                   vis_cam=False,
@@ -189,7 +190,9 @@ def find_render_cam(pcd, poses_all=None, cam_width=0.016, cam_height=0.012, cam_
         print(camera_params.intrinsic.intrinsic_matrix)
         print("\nExtrinsic matrix:")
         print(camera_params.extrinsic)
-        
+        vis.capture_screen_image("selected_view.png") 
+        tranPNG("selected_view.png", "selected_view_transparent.png")
+
         return False
     
     vis = o3d.visualization.VisualizerWithKeyCallback()
@@ -230,7 +233,7 @@ def vis_frame_preds(preds, type, save_path, norm_dims=(0, 1, 2),
 
     if save_video:
         video_path = osp.join(osp.dirname(save_path), f'{type}.mp4')
-        writer = imageio.get_writer(video_path, fps=fps)
+        writer = imageio.get_writer(video_path) #, fps=fps 
 
     for frame_id in tqdm(range(preds.shape[0]), desc=f"Visualizing {type}"):
         pred_vis = preds[frame_id].astype(np.float32)
@@ -256,5 +259,17 @@ def vis_frame_preds(preds, type, save_path, norm_dims=(0, 1, 2),
     if save_video:
         writer.close()
 
-
-
+def tranPNG(png_path, save_path):
+    img = Image.open(png_path)
+    img = img.convert("RGBA")
+    datas = img.getdata()
+    newData = []
+    for item in datas:
+        # change all white (also shades of whites)
+        # to transparent
+        if item[0] == 0 and item[1] == 0 and item[2] == 0:
+            newData.append((0, 0, 0, 0))
+        else:
+            newData.append(item)
+    img.putdata(newData)
+    img.save(save_path)
