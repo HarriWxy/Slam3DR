@@ -276,27 +276,43 @@ def depth_correct_pts3d(pts3d, depthmap, conf=None, conf_thres=None,
     valid = torch.isfinite(depthmap)
     valid = valid & (depthmap > min_valid_depth) & (depthmap < max_valid_depth)
     valid = valid & torch.isfinite(pred_depth)
-    if conf is not None and conf_thres is not None:
-        valid = valid & (conf > conf_thres)  & (conf < conf_thres * 5) 
+    # if conf is not None and conf_thres is not None:
+    #     valid = valid & (conf > conf_thres) #& (conf < conf_thres * 5)
 
     if valid.sum() < 10:
         return pts3d, None
 
-    d_pred = pred_depth*valid.float()
-    d_gt = depthmap*valid.float()
+    d_pred =  pred_depth[valid]
+    d_gt = depthmap[valid]
     if d_pred.numel() < 10:
         return pts3d, None
 
-    
-    t = (d_gt - d_pred) * 0.4
+    # 置信度加权的尺度+偏移拟合：min Σ w (s*d_pred + t - d_gt)^2
+    if conf is not None:
+        w = conf[valid].clamp_min(eps)
+    else:
+        w = torch.ones_like(d_pred)
 
-    corrected_depth = pred_depth + t
+    w_sum = w.sum().clamp_min(eps)
+    x = d_pred
+    y = d_gt
+    x_bar = (w * x).sum() / w_sum
+    y_bar = (w * y).sum() / w_sum
+    var_x = (w * (x - x_bar) ** 2).sum().clamp_min(eps)
+    cov_xy = (w * (x - x_bar) * (y - y_bar)).sum()
+    s = cov_xy / var_x
+    t = y_bar - s * x_bar
+
+    if not torch.isfinite(s) or not torch.isfinite(t):
+        return pts3d, None
+    
+    corrected_depth =  s * pred_depth + t
     corrected_depth = torch.clamp(corrected_depth, min=min_valid_depth)
-    # scale = corrected_depth / (pred_depth + eps)
-    # pts3d_corr = pts3d * scale.unsqueeze(-1)
-    pts3d_corr = pts3d.clone()
-    pts3d_corr[..., 2] = corrected_depth
-    stats = dict(scale=1, shift=t.mean().item(), num_valid=int(valid.sum().item()))
+    scale = corrected_depth / (pred_depth + eps)
+    pts3d_corr = pts3d * scale.unsqueeze(-1)
+    # pts3d_corr = pts3d.clone()
+    # pts3d_corr[..., 2] = corrected_depth
+    stats = dict(scale=s.item(), shift=t.item(), num_valid=int(valid.sum().item()))
     return pts3d_corr, stats
 
 

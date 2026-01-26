@@ -296,6 +296,7 @@ def scene_recon_pipeline_offline(i2p_model:Image2PointsModel,
     scene_id = dataset.scene_names[0]
     data_views = dataset[0][:]
     num_views = len(data_views)
+    args.depth_correct_conf_thres = conf_thres_i2p
     
     # Pre-save the RGB images along with their corresponding masks 
     # in preparation for visualization at last.

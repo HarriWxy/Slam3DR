@@ -39,11 +39,17 @@ class Replica(BaseStereoViewDataset):
         self.start_freq = start_freq
         self.sample_dis = sample_dis
         self.cycle=cycle
-        self.num_fetch_views = num_fetch_views if num_fetch_views is not None else num_views
-        self.sel_view = np.arange(num_views) if sel_view is None else np.array(sel_view)
-        self.num_views = num_views
-        assert ref_id < num_views
-        self.ref_id = ref_id if ref_id >= 0 else (num_views-1) // 2
+        if num_views > 0:
+            self.num_fetch_views = num_fetch_views if num_fetch_views is not None else num_views
+            self.sel_view = np.arange(num_views) if sel_view is None else np.array(sel_view)
+            self.num_views = num_views
+            assert ref_id < num_views
+            self.ref_id = ref_id if ref_id >= 0 else (num_views-1) // 2
+        else:
+            self.num_fetch_views = None
+            self.sel_view = None
+            self.num_views = -1
+            self.ref_id = None
         self.scene_names = ["room0", "room1", "room2", "office0", "office1", "office2", "office3", "office4"]
         if self.split == 'train':
             self.scene_names = ["room0", "room1", "room2", "office0", "office1", "office2"]
@@ -79,7 +85,11 @@ class Replica(BaseStereoViewDataset):
 
             image_paths = image_paths[::self.sample_freq]
             image_num = len(image_paths)
-
+            if self.num_views == -1:
+                self.num_fetch_views = image_num
+                self.num_views = image_num
+                self.sel_view = np.arange(image_num)
+                self.ref_id = image_num // 2
             if not self.cycle:
                 for i in range(0, image_num, self.start_freq):
                     last_id = i+self.sample_dis*(self.num_fetch_views-1)

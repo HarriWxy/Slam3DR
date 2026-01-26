@@ -8,7 +8,8 @@ from slam3dr.models import Image2PointsModel, Local2WorldModel, inf
 from slam3dr.utils.device import to_numpy
 import os
 from recon import load_model
-from slam3dr.datasets import get_data_loader
+from slam3dr.datasets import get_seq_eval_data_loader
+
 
 os.environ['CUDA_VISIBLE_DEVICES']='0'
 
@@ -24,12 +25,13 @@ mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_min
 parser.add_argument('--i2p_weights', type=str,  help='path to the weights of i2p model') # default="checkpoints/i2p/slam3r_i2p_stage1/checkpoint-last.pth",
 parser.add_argument("--l2w_weights",  type=str, help="path to the weights of l2w model") # default="checkpoints/slam3r_l2w/checkpoint-last.pth",
 input_group = parser.add_mutually_exclusive_group(required=False)
-input_group.add_argument("--dataset",  type=str, help="a string indicating the dataset") # default="ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='test', resolution=224, seed=666)",
+input_group.add_argument("--dataset", default="Replica(scene_name='office3',**args)", type=str, help="a string indicating the dataset") # default="ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='test', resolution=224, seed=666)",
+# 
 
 input_group.add_argument("--img_dir", default="../Replica/office3/results", type=str, help="directory of the input images") #  default="../scannet/scans/scene0000_01/sensor_data",
 
 parser.add_argument("--save_dir", type=str, default="results", help="directory to save the results") 
-parser.add_argument("--test_name", type=str, default="Replica_office33", help="name of the test") # required=True
+parser.add_argument("--test_name", type=str, default="Replica_office33ddd", help="name of the test") # required=True
 parser.add_argument('--save_all_views', action='store_true', help='whether to save all views respectively')
 
 
@@ -85,7 +87,7 @@ parser.add_argument('--save_for_eval', default=False, action='store_true', help=
 parser.add_argument("--online", action="store_true", help="whether to implement online reconstruction")
 
 # optional depth correction (post-fusion)
-parser.add_argument('--depth_correct', action='store_true',
+parser.add_argument('--depth_correct', default=True, action='store_true',
                     help='enable depth scale/shift correction when depthmap is available')
 parser.add_argument('--depth_correct_min_depth', type=float, default=1e-3,
                     help='minimum valid depth for correction')
@@ -126,6 +128,7 @@ if __name__ == "__main__":
 
     if args.dataset:
         print("Loading dataset: ", args.dataset)
+        dataset = get_seq_eval_data_loader(args.dataset)
         # dataset = get_data_loader(args.dataset, batch_size=1, return_id=False, num_workers=4, shuffle=False, drop_last=False, pin_mem=True)
     elif args.img_dir:
         dataset = Seq_Data(img_dir=args.img_dir, img_size=224, to_tensor=True)

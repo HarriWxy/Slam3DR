@@ -21,8 +21,8 @@ parser.add_argument("--seed", type=int, default=42, help="seed for python random
 parser.add_argument("--icp", type=str, default='plain', help='')
 parser.add_argument("--root_dir", type=str, default='results', help='')
 parser.add_argument('--dataset', type=str, default='replica')
-parser.add_argument("--test_name", default="Replica_office0",type=str, help='') # , required=True
-parser.add_argument("--gt_pcd", default="../gt/Replica/office0_pcds.npy", type=str, help='') # , required=True
+parser.add_argument("--test_name", default="Replica_office33ddd",type=str, help='') # , required=True
+parser.add_argument("--gt_pcd", default="../gt/Replica/office3_pcds.npy", type=str, help='') # , required=True
 
 
 def save_vis(points, dis, vis_path):
