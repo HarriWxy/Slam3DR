@@ -277,7 +277,7 @@ def depth_correct_pts3d(pts3d, depthmap, conf=None, conf_thres=None,
     valid = valid & (depthmap > min_valid_depth) & (depthmap < max_valid_depth)
     valid = valid & torch.isfinite(pred_depth)
     if conf is not None and conf_thres is not None:
-        valid = valid & (conf > conf_thres)  & (conf < conf_thres * 10) 
+        valid = valid & (conf > conf_thres)  & (conf < conf_thres * 5) 
 
     if valid.sum() < 10:
         return pts3d, None
@@ -288,12 +288,14 @@ def depth_correct_pts3d(pts3d, depthmap, conf=None, conf_thres=None,
         return pts3d, None
 
     
-    t = (d_gt - d_pred) * 0.1
+    t = (d_gt - d_pred) * 0.4
 
     corrected_depth = pred_depth + t
     corrected_depth = torch.clamp(corrected_depth, min=min_valid_depth)
-    scale = corrected_depth / (pred_depth + eps)
-    pts3d_corr = pts3d * scale.unsqueeze(-1)
+    # scale = corrected_depth / (pred_depth + eps)
+    # pts3d_corr = pts3d * scale.unsqueeze(-1)
+    pts3d_corr = pts3d.clone()
+    pts3d_corr[..., 2] = corrected_depth
     stats = dict(scale=1, shift=t.mean().item(), num_valid=int(valid.sum().item()))
     return pts3d_corr, stats
 
