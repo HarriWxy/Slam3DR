@@ -4,6 +4,10 @@
 
 更新了部分代码支持最新的 PyTorch 版本（2.9.1）以及 cuda 13.0。
 
+## 0. Demo webcam
+
+支持了安卓 Droidcam 应用作为视频流输入源：通过 8098 端口代理来自 Droidcam:4747/video 的视频流，实现并发访问视频流。并修复了一些流程 Bug 。
+
 ---
 
 ## 1. 技术方案概述（Slam3R + Depth）
