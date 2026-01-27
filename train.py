@@ -59,18 +59,16 @@ def get_args_parser():
                         enc_embed_dim=1024, enc_depth=24, enc_num_heads=16, dec_embed_dim=768, dec_depth=12, dec_num_heads=12, \
                         mv_dec1='MultiviewDecoderBlock_max',mv_dec2='MultiviewDecoderBlock_max', enc_minibatch = 11)",  #  required=True
                         type=str, help="string containing the model to build")
-    parser.add_argument('--pretrained', default="checkpoints/i2p/slam3r_i2p_stage1/checkpoint-best.pth", help='path of a starting checkpoint') # 
+    parser.add_argument('--pretrained', default="i2p", help='path of a starting checkpoint') # checkpoints/i2p/slam3r_i2p_stage1/checkpoint-best.pth
     parser.add_argument('--pretrained_type', default='slam3r', help='type of pretrained checkpoint')
     parser.add_argument('--train_criterion', default="Jointnorm_ConfLoss(Jointnorm_Regr3D(L21, norm_mode='avg_dis'), alpha=0.2)", # required=True
                         type=str, help="train criterion")
     parser.add_argument('--test_criterion', default="Jointnorm_Regr3D(L21, norm_mode='avg_dis')", type=str, help="test criterion")
 
-    # dataset
-    parser.add_argument('--train_dataset', default="1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + \
-                                                    1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)", 
-                        type=str, help="training set") # required=True
-    parser.add_argument('--test_dataset', default="1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666)+\
-                                                    1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='test', resolution=224, seed=666)", 
+    # dataset# 1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='train', aug_crop=16, resolution=224, transform=ColorJitter, seed=233) + \
+    parser.add_argument('--train_dataset', default="1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='train', resolution=224, seed=666)", 
+                        type=str, help="training set") # required=True1000 @ Co3d_Seq(num_views=11, sel_num=3, degree=180, mask_bg='rand', split='test', resolution=224, seed=666)+\
+    parser.add_argument('--test_dataset', default="1000 @ ScanNet_Seq(num_views=11,num_seq=100, max_thresh=100, split='test', resolution=224, seed=666)", 
                         type=str, help="testing set")
 
     # training

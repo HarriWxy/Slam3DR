@@ -26,15 +26,17 @@ class ScanNet_Seq(BaseStereoViewDataset):
     def __init__(
         self,
         num_seq=100, num_views=5, 
-        min_thresh=10, max_thresh=100, 
+        min_thresh=1, max_thresh=100, 
         test_id=None, full_video=False, kf_every=1,
         ROOT="../scannet/",
         *args, **kwargs
     ):
         self.ROOT = ROOT
         super().__init__(*args, **kwargs)
-        self.num_seq = num_seq
+        self.num_seq = num_seq # number of sequences per scene
         self.num_views = num_views
+        if num_views < 0:
+            full_video = True
         self.min_thresh = min_thresh
         self.max_thresh = max_thresh
         self.test_id = test_id
